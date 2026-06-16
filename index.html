@@ -105,6 +105,9 @@
                 </h1>
                 <p class="text-[10px] text-stone-500" id="header-subtitle">ゆずの性格設計追加、シナリオJSONおよび単体動作プレイヤーHTMLのエクスポート書き出しツール</p>
             </div>
+            <a href="./nobelengine_agents_portal.html" class="ml-2 px-2.5 py-1 text-[10px] font-bold rounded border border-sky-500/40 text-sky-700 bg-sky-500/5 hover:bg-sky-500/15 transition flex items-center gap-1" title="開発・拡張ポータルを開く">
+                <i data-lucide="layout-dashboard" class="w-3 h-3"></i> 開発ポータル
+            </a>
         </div>
         
         <!-- コントロール群 (リアルタイムカラーピッカー、言語切替、プロジェクト) -->
@@ -612,8 +615,8 @@
                     <!-- Magic ToDoコントロール -->
                     <div class="flex gap-2">
                         <select id="todo-target-picker" class="flex-1 bg-white text-stone-800 border border-stone-300 rounded px-2 py-1.5 text-xs font-serif font-bold">
-                            <option value="award">目標：「漫画賞で新人賞を取る」 (こむぎの発案)</option>
-                            <option value="book">目標：「初めての同人誌を印刷して頒布する」 (あおいの発案)</option>
+                            <option value="award" data-i18n="todo-opt-award">目標：「漫画賞で新人賞を取る」 (こむぎの発案)</option>
+                            <option value="book" data-i18n="todo-opt-book">目標：「初めての同人誌を印刷して頒布する」 (あおいの発案)</option>
                         </select>
                         <button onclick="triggerMagicDecomposition()" class="px-4 py-1.5 bg-gradient-to-r from-sky-600 to-sky-700 text-white text-xs font-bold rounded shadow hover:from-sky-700 hover:to-sky-800 transition flex items-center gap-1 shrink-0">
                             <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
@@ -825,33 +828,45 @@
         const glossaryDatabase = {
             format: {
                 title: "トンボ & 塗り足し",
+                titleZh: "裁切线 & 出血线",
                 desc: "仕上がり寸法より3mm外側まで描く領域。断裁時のズレで白余白が出るのを防ぐ同人誌作画の最重要ハザード。",
-                status: "未理解 🔒"
+                descZh: "在成品尺寸之外再多画3mm的区域。用于防止裁切偏差时露出白边，是同人志作画中最重要的风险点。",
+                state: "locked"
             },
             cost: {
                 title: "オンデマンド vs オフセット",
+                titleZh: "数码印刷 vs 胶印",
                 desc: "少部数なら初期費用が安いトナー方式の「オンデマンド印刷」、数百部以上ならインク方式の超高画質「オフセット印刷」がトントン基準。",
-                status: "未理解 🔒"
+                descZh: "少量印刷时，初期费用低的墨粉方式“数码印刷”更划算；数百本以上时，墨水方式、画质极高的“胶印”才划得来。",
+                state: "locked"
             },
             gutter: {
                 title: "ノド & 隠しノンブル",
+                titleZh: "订口(书脊侧) & 暗页码",
                 desc: "本を綴じる側の余白（ノド）。漫画のコマや重要な台詞をノドに配置すると見えなくなるため、一定の余白設計が必要。",
-                status: "未理解 🔒"
+                descZh: "书籍装订一侧的留白（订口）。若把漫画分格或重要台词放在订口处会被遮住看不见，因此需要预留一定留白。",
+                state: "locked"
             },
             colophon: {
                 title: "奥付 必須6項目",
+                titleZh: "版权页(奥付) 必备6要素",
                 desc: "責任元を明確にし紛争を回避するための法規措置。書名、発行日、著者、サークル、連絡先、印刷所名の表記が絶対ルール。",
-                status: "未理解 🔒"
+                descZh: "为明确责任方、避免纠纷而设的规范措施。书名、发行日、作者、社团、联络方式、印刷厂名称的标注是绝对规则。",
+                state: "locked"
             },
             cmyk: {
                 title: "RGB ➔ CMYK 変換",
+                titleZh: "RGB ➔ CMYK 转换",
                 desc: "画面表示の光(RGB)と、印刷物のインク(CMYK)では色域が異なる。事前に変換して色味がくすむハザードを回避する。",
-                status: "未理解 🔒"
+                descZh: "屏幕显示的光(RGB)与印刷品的墨水(CMYK)色域不同。需提前转换，以避免成品色彩发暗发灰的风险。",
+                state: "locked"
             },
             pp: {
                 title: "PP加工 (ポリプロピレン加工)",
+                titleZh: "PP覆膜 (聚丙烯覆膜)",
                 desc: "同人誌の表紙にラミネートフィルムを貼る加工。光沢のグロスPPや、しっとりしたマットPPがあり、高級感と保護性能を高める。",
-                status: "未理解 🔒"
+                descZh: "在同人志封面贴覆一层薄膜的工艺。有光泽的亮膜(亮PP)和质感柔和的哑膜(哑PP)，可提升质感与保护性。",
+                state: "locked"
             }
         };
 
@@ -859,97 +874,105 @@
         const magicTodoDatabase = {
             award: {
                 label: "目標：「漫画賞で新人賞を取る」",
+                labelZh: "目标：「在漫画奖中夺得新人奖」",
                 levels: [
                     {
                         name: "通常レベル (Lv.1)",
+                        nameZh: "普通解像度 (Lv.1)",
                         time: 20,
                         panic: 1,
                         pressure: 12,
                         tasks: [
-                            { text: "作品のアイデアを考える", done: false },
-                            { text: "ストーリーの構成を練る", done: false },
-                            { text: "キャラクターの設定を行う", done: false },
-                            { text: "作品の下書き・ペン入れを描く", done: false },
-                            { text: "応募規定に沿って提出用の作品を準備する", done: false }
+                            { text: "作品のアイデアを考える", textZh: "构思作品的点子", done: false },
+                            { text: "ストーリーの構成を練る", textZh: "打磨故事的结构", done: false },
+                            { text: "キャラクターの設定を行う", textZh: "设定角色", done: false },
+                            { text: "作品の下書き・ペン入れを描く", textZh: "绘制作品的草稿与勾线", done: false },
+                            { text: "応募規定に沿って提出用の作品を準備する", textZh: "按照征稿规定准备投稿用的作品", done: false }
                         ]
                     },
                     {
                         name: "プロ設計レベル (Lv.2)",
+                        nameZh: "专业设计解像度 (Lv.2)",
                         time: 150,
                         panic: 3,
                         pressure: 45,
                         tasks: [
-                            { text: "作品のアイデアを考える（ジャンル分析、類似作排除）", done: false },
-                            { text: "ストーリーの構成を練る（起承転結、フックの設定）", done: false },
-                            { text: "キャラクターの性格、目的、外見、服装、小物を細かくデザインする", done: false },
-                            { text: "絵の基本的なデッサン技術を学び、さまざまな対象物や人物の観察練習を行う", done: false },
-                            { text: "模写や他の作家の作品を解析し、自分のスタイルに取り入れる", done: false },
-                            { text: "漫画の背景、効果線、ストーリーテリング力を高める特訓を行う", done: false },
-                            { text: "作品の下書きを描き、背景や詳細を追加しながらペン入れ・仕上げを行う", done: false },
-                            { text: "応募規定を確認し、必要書類やフォームを用意して締切までに提出する", done: false }
+                            { text: "作品のアイデアを考える（ジャンル分析、類似作排除）", textZh: "构思作品点子（分析题材类型、排除雷同作品）", done: false },
+                            { text: "ストーリーの構成を練る（起承転結、フックの設定）", textZh: "打磨故事结构（起承转合、设置悬念钩子）", done: false },
+                            { text: "キャラクターの性格、目的、外見、服装、小物を細かくデザインする", textZh: "细致设计角色的性格、目的、外貌、服装与小道具", done: false },
+                            { text: "絵の基本的なデッサン技術を学び、さまざまな対象物や人物の観察練習を行う", textZh: "学习基础素描技法，并进行各种物体与人物的观察练习", done: false },
+                            { text: "模写や他の作家の作品を解析し、自分のスタイルに取り入れる", textZh: "通过临摹与解析他人作品，将其融入自己的风格", done: false },
+                            { text: "漫画の背景、効果線、ストーリーテリング力を高める特訓を行う", textZh: "进行专项训练，提升漫画背景、效果线与叙事能力", done: false },
+                            { text: "作品の下書きを描き、背景や詳細を追加しながらペン入れ・仕上げを行う", textZh: "绘制草稿，一边添加背景与细节一边勾线、收尾", done: false },
+                            { text: "応募規定を確認し、必要書類やフォームを用意して締切までに提出する", textZh: "确认征稿规定，准备所需材料与表格，并在截止前提交", done: false }
                         ]
                     },
                     {
                         name: "完全現実解像度【恐怖のバースト】 (Lv.3)",
+                        nameZh: "完全现实解像度【恐惧爆发】 (Lv.3)",
                         time: 1200,
                         panic: 5,
                         pressure: 98,
                         tasks: [
-                            { text: "アイデア考案：プロット作成、競合賞の過向傾向分析、市場リサーチ", done: false },
-                            { text: "ストーリー構成：24P or 32Pのページ割りネーム、セリフ演出の推敲", done: false },
-                            { text: "キャラ設定：性格・背景、外見や特徴の描写、名前決定、目的や動機、役割関係性の定義", done: false },
-                            { text: "キャラ台詞や口調、服装や小物の詳細な3Dモデル・デザイン整合性確認", done: false },
-                            { text: "画力向上：毎日3時間のクロッキー、異なる画材・デジタルツールの模索、フィードバック収集", done: false },
-                            { text: "下書き作画、3D背景素材のトランス、パース定規を用いた緻密なパース背景追加", done: false },
-                            { text: "デジタルペン入れ（手ブレ補正、入り抜きの設定）、髪ツヤ・効果線の手作業描画", done: false },
-                            { text: "トーン貼り、彩色、グラデーションマスク、奥付および応募免責記述の配置", done: false },
-                            { text: "デジタルデータの書き出し（PSD、TIFF形式）、RGBからCMYKプロファイル埋込", done: false },
-                            { text: "動画コンテスト応募：動画形式サイズ、画像準備、アップロード確認、完了メール監視", done: false }
+                            { text: "アイデア考案：プロット作成、競合賞の過向傾向分析、市場リサーチ", textZh: "构思点子：撰写大纲、分析竞品奖项的获奖倾向、市场调研", done: false },
+                            { text: "ストーリー構成：24P or 32Pのページ割りネーム、セリフ演出の推敲", textZh: "故事构成：24页或32页的分镜分页(name)、推敲台词与演出", done: false },
+                            { text: "キャラ設定：性格・背景、外見や特徴の描写、名前決定、目的や動機、役割関係性の定義", textZh: "角色设定：性格与背景、外貌与特征描写、定名、目的与动机、角色关系的界定", done: false },
+                            { text: "キャラ台詞や口調、服装や小物の詳細な3Dモデル・デザイン整合性確認", textZh: "确认角色台词与口吻、服装与小道具的详细3D模型及设计一致性", done: false },
+                            { text: "画力向上：毎日3時間のクロッキー、異なる画材・デジタルツールの模索、フィードバック収集", textZh: "提升画力：每天3小时速写、尝试不同画材与数码工具、收集反馈", done: false },
+                            { text: "下書き作画、3D背景素材のトランス、パース定規を用いた緻密なパース背景追加", textZh: "绘制草稿、转换3D背景素材、用透视尺添加精密的透视背景", done: false },
+                            { text: "デジタルペン入れ（手ブレ補正、入り抜きの設定）、髪ツヤ・効果線の手作業描画", textZh: "数码勾线（防抖修正、起笔收笔设置），手动绘制发丝高光与效果线", done: false },
+                            { text: "トーン貼り、彩色、グラデーションマスク、奥付および応募免責記述の配置", textZh: "贴网点、上色、渐变蒙版，配置版权页与投稿免责声明", done: false },
+                            { text: "デジタルデータの書き出し（PSD、TIFF形式）、RGBからCMYKプロファイル埋込", textZh: "导出数字数据（PSD、TIFF格式），嵌入RGB到CMYK的色彩配置文件", done: false },
+                            { text: "動画コンテスト応募：動画形式サイズ、画像準備、アップロード確認、完了メール監視", textZh: "影像比赛投稿：视频格式与尺寸、准备图像、确认上传、留意完成邮件", done: false }
                         ]
                     }
                 ]
             },
             book: {
                 label: "目標：「初めての同人誌を印刷して頒布する」",
+                labelZh: "目标：「印刷并发布第一本同人志」",
                 levels: [
                     {
                         name: "通常レベル (Lv.1)",
+                        nameZh: "普通解像度 (Lv.1)",
                         time: 15,
                         panic: 1,
                         pressure: 10,
                         tasks: [
-                            { text: "漫画・小説の原稿を書く", done: false },
-                            { text: "印刷所に頼んで本にしてもらう", done: false },
-                            { text: "イベント会場に申し込んで出店する", done: false },
-                            { text: "レジを用意してお会計をする", done: false }
+                            { text: "漫画・小説の原稿を書く", textZh: "撰写漫画/小说的原稿", done: false },
+                            { text: "印刷所に頼んで本にしてもらう", textZh: "委托印刷厂把它做成书", done: false },
+                            { text: "イベント会場に申し込んで出店する", textZh: "报名活动会场并摆摊", done: false },
+                            { text: "レジを用意してお会計をする", textZh: "准备收银并结账", done: false }
                         ]
                     },
                     {
                         name: "プロ設計レベル (Lv.2)",
+                        nameZh: "专业设计解像度 (Lv.2)",
                         time: 90,
                         panic: 3,
                         pressure: 50,
                         tasks: [
-                            { text: "原稿作成（サイズ・トンボ設定、3mmの塗り足しを確認）", done: false },
-                            { text: "予算を計算し、オンデマンド印刷の費用を見積もる（ページ数調整）", done: false },
-                            { text: "巻末に必須の奥付6項目（タイトル、発行日、印刷所など）を正しく配置", done: false },
-                            { text: "全年齢規定と二次創作免責文が記述できているか自己検閲を行う", done: false },
-                            { text: "イベント参加手続きと搬入指示書の記述、サークルスペースの設営設計", done: false }
+                            { text: "原稿作成（サイズ・トンボ設定、3mmの塗り足しを確認）", textZh: "制作原稿（设置尺寸与裁切线，确认3mm出血）", done: false },
+                            { text: "予算を計算し、オンデマンド印刷の費用を見積もる（ページ数調整）", textZh: "计算预算，估算数码印刷的费用（调整页数）", done: false },
+                            { text: "巻末に必須の奥付6項目（タイトル、発行日、印刷所など）を正しく配置", textZh: "在卷末正确放置必备的版权页6要素（书名、发行日、印刷厂等）", done: false },
+                            { text: "全年齢規定と二次創作免責文が記述できているか自己検閲を行う", textZh: "自我审查是否写明全年龄规定与二次创作免责声明", done: false },
+                            { text: "イベント参加手続きと搬入指示書の記述、サークルスペースの設営設計", textZh: "办理活动参加手续、填写搬入指示书、设计摊位布置", done: false }
                         ]
                     },
                     {
                         name: "完全現実解像度【恐怖のバースト】 (Lv.3)",
+                        nameZh: "完全现实解像度【恐惧爆发】 (Lv.3)",
                         time: 850,
                         panic: 5,
                         pressure: 95,
                         tasks: [
-                            { text: "原稿：サイズ、トンボ、3mm塗り足し、RGB➔CMYK色域ズレ防止、ノド・隠しノンブルの配置", done: false },
-                            { text: "予算：部数50部のオンデマンド最適見積調整、表紙の特殊PP加工、背幅計算と背表紙デザイン", done: false },
-                            { text: "法務：奥付6項目の整合確認（連絡先メール・SNS、印刷所名の裏取り、日付統一）", done: false },
-                            { text: "二次創作ガイドライン抵触監査、公式ロゴの絶対不使用、表現のモザイク等合規審査", done: false },
-                            { text: "印刷所入稿：PSDデータエラー、レイヤー統合忘れ、解像度350/600dpiチェックとデータ再転送", done: false },
-                            { text: "普及後ハザード：国会図書館への納本義務（100部以上普及時の手続）、文化庁への手続き認知", done: false },
-                            { text: "税務ハザード：同人サークルの雑所得年間20万円超の帳簿・領収書管理、所得確定申告準備", done: false }
+                            { text: "原稿：サイズ、トンボ、3mm塗り足し、RGB➔CMYK色域ズレ防止、ノド・隠しノンブルの配置", textZh: "原稿：尺寸、裁切线、3mm出血、防止RGB➔CMYK色域偏差、订口与暗页码的配置", done: false },
+                            { text: "予算：部数50部のオンデマンド最適見積調整、表紙の特殊PP加工、背幅計算と背表紙デザイン", textZh: "预算：50本数码印刷的最优报价调整、封面特殊PP覆膜、书脊宽度计算与书脊设计", done: false },
+                            { text: "法務：奥付6項目の整合確認（連絡先メール・SNS、印刷所名の裏取り、日付統一）", textZh: "法务：核对版权页6要素的一致性（联络邮箱与社交账号、核实印刷厂名称、统一日期）", done: false },
+                            { text: "二次創作ガイドライン抵触監査、公式ロゴの絶対不使用、表現のモザイク等合規審査", textZh: "审查是否触碰二次创作指南、绝不使用官方Logo、对表现内容进行打码等合规检查", done: false },
+                            { text: "印刷所入稿：PSDデータエラー、レイヤー統合忘れ、解像度350/600dpiチェックとデータ再転送", textZh: "向印刷厂交稿：排查PSD数据错误、漏合并图层，检查350/600dpi分辨率并重新传送数据", done: false },
+                            { text: "普及後ハザード：国会図書館への納本義務（100部以上普及時の手続）、文化庁への手続き認知", textZh: "发布后的风险：向国会图书馆的呈缴义务（发行100本以上时的手续）、了解需向文化厅办理的手续", done: false },
+                            { text: "税務ハザード：同人サークルの雑所得年間20万円超の帳簿・領収書管理、所得確定申告準備", textZh: "税务风险：同人社团杂项所得年超20万日元时的账簿与收据管理、准备所得税的报税申报", done: false }
                         ]
                     }
                 ]
@@ -978,7 +1001,9 @@
                 "legal-desc": "本が大量に売れたり利益が出た場合、同人活動であっても「法的な義務」が発生します。適切な選択を行いましょう。",
                 "next-dialogue": "読み進める",
                 "flow-title": "心理フローバランス (心理集中度)",
-                "flow-desc": "情報難度とスキル適性から動的に算出"
+                "flow-desc": "情報難度とスキル適性から動的に算出",
+                "todo-opt-award": "目標：「漫画賞で新人賞を取る」 (こむぎの発案)",
+                "todo-opt-book": "目標：「初めての同人誌を印刷して頒布する」 (あおいの発案)"
             },
             zh: {
                 "reset-btn": "重新开始",
@@ -992,17 +1017,44 @@
                 "knowledge-gained": "当前习得的认知",
                 "goto-colophon": "设计版权页(奥付)",
                 "colophon-title": "法律与联络规范：请配置奥付必备的6大要素",
-                "colophon-desc": "同人志的最后一页必须写明“必备6要素”以防止法律纠纷 and 保障联络。参考右侧的说明，勾选正确的项目以完成奥付设计。",
+                "colophon-desc": "同人志的最后一页必须写明“必备6要素”，以防止纠纷并保障联络方式。请参考右侧的说明，勾选正确的项目以完成版权页(奥付)设计。",
                 "goto-review": "前往主办方审核",
                 "review-title": "活动主办方合规审查（审查）",
-                "review-desc": "在同人展会中，主办方 and 巡查人员会对“表达规范” and “全年龄适合度”进行审核。作为一个初中生社团，所出书籍必须属于“全年齢”级别。请通过自我审查。",
+                "review-desc": "在同人展会中，主办方和巡查人员会对“表达规范”和“全年龄适合度”进行审核。作为初中生社团，所出书籍必须属于“全年龄”级别。请通过自我审查。",
                 "legal-title": "畅销之后……国会图书馆呈缴义务与纳税义务",
                 "legal-desc": "当书大量售出或者产生利润时，即使是同人活动也会产生“法律义务”。请做出正确的选择。",
                 "next-dialogue": "继续阅读",
-                "flow-title": "心理流体験平衡 (集中度)",
-                "flow-desc": "根据信息难度和技能自适应计算"
+                "flow-title": "心理流平衡 (专注度)",
+                "flow-desc": "根据信息难度和技能自适应计算",
+                "todo-opt-award": "目标：「在漫画奖中夺得新人奖」 (小麦的提议)",
+                "todo-opt-book": "目标：「印刷并发布第一本同人志」 (葵的提议)"
             }
         };
+
+        // --- 動的レンダリング用 UI 文字列（辞書・ToDoの言語連動） ---
+        const uiStrings = {
+            ja: {
+                glossaryStatus: { locked: "未理解 🔒", inquiry: "探求中 🔍", unlocked: "理解済 ✨" },
+                glossaryLockedDesc: "対応する認知フラグ（原稿や予算）レベルを高めることでアンロックされます。",
+                glossaryRate: (r) => `獲得率: ${r}%`,
+                todoTime: (t) => `${t} 時間`,
+                todoCount: (n) => `${n}個のタスク`,
+                todoExpandToast: "Magic ToDo: タスクの解像度を爆発的に細分化しました！",
+                todoFoldToast: "あまりの膨大さにプレイヤーが現実逃避しました。タスクを畳みます。",
+                narrativeSteps: ["知らない", "知る", "探求", "推論", "仮説検証"]
+            },
+            zh: {
+                glossaryStatus: { locked: "未掌握 🔒", inquiry: "探索中 🔍", unlocked: "已掌握 ✨" },
+                glossaryLockedDesc: "提升对应的认知旗标（原稿或预算）等级即可解锁。",
+                glossaryRate: (r) => `掌握率: ${r}%`,
+                todoTime: (t) => `${t} 小时`,
+                todoCount: (n) => `${n}个任务`,
+                todoExpandToast: "Magic ToDo：任务的解像度被爆炸式地细分了！",
+                todoFoldToast: "因任务过于庞大，玩家选择了逃避现实，于是把任务折叠起来。",
+                narrativeSteps: ["不知道", "知道", "探索", "推理", "假设验证"]
+            }
+        };
+        function ui() { return uiStrings[appState.language] || uiStrings.ja; }
 
         // --- 共通＆個別プロジェクトのナラティブ・データベース ---
         const gameDatabase = {
@@ -1036,7 +1088,7 @@
                             '葵在网上查到：“裁切线是让印刷本边缘切整齐的标记哦！”',
                             '进一步查到了“出血线”的概念。作画需要比成品边缘往外多画3mm。',
                             '“如果没有出血线的话，印刷裁剪稍微偏差一点就会露出难看的白边！”小麦恍然大悟。',
-                            '【假设验证】在所有的插画画布上设置了3mm of 出血线，小麦成功完成了边缘部分的作画！'
+                            '【假设验证】在所有插画画布上都设置了3mm的出血线，小麦成功完成了直到边缘的作画！'
                         ]
                     },
                     cost: {
@@ -1053,9 +1105,9 @@
                         detailsZh: [
                             '“印一本书要多少钱啊？零花钱3万日元够用吗……”',
                             '了解到了“数码印刷”适合少量印刷，“胶印”适合大批量印刷。',
-                            '明白如果只印初中生規模の冊数（50冊左右），初期費用更低い数码印刷是唯一選択！',
-                            '假设只要合理控制頁数 and 印量，使用印刷所の估価工具就能把費用控制在予算内。',
-                            '【假设验证】将総頁数を24頁に、数码印刷50冊、成功将予算を13,200円以内（毎本コスト264円）に収めた！'
+                            '明白了：如果只印初中生规模的册数（50册左右），初期费用更低的数码印刷是唯一选择！',
+                            '假设只要合理控制页数和印量，使用印刷厂的估价工具就能把费用控制在预算之内。',
+                            '【假设验证】把总页数压到24页、数码印刷50册，成功将预算控制在13,200日元以内（每本成本264日元）！'
                         ]
                     }
                 },
@@ -1115,9 +1167,9 @@
                         detailsZh: [
                             '桌上落着的某样东西。还没拿起来。',
                             '拿起来看了看。是一块满是煤灰的古老高级金怀表。',
-                            '表盖打不开。里面的齿轮手記 perhaps 卡住了，用力旋转可能会弄坏。',
-                            '擦拭表盘后，发现盖子内侧有細小の焦黒痕跡、指针完全停在“11点15分”。',
-                            '【假设】据称事件枪声发生在11点。这块表是因11点15分の劇烈衝突而停擺的。'
+                            '表盖打不开。里面的齿轮似乎卡住了，用力旋转可能会弄坏。',
+                            '擦拭表盘后，发现盖子内侧有细小的焦黑痕迹，指针完全停在“11点15分”。',
+                            '【假设】据称事件枪声发生在11点。这块表是因11点15分的剧烈冲击而停摆的。'
                         ]
                     },
                     key: {
@@ -1135,8 +1187,8 @@
                             '掉在壁炉旁的金属。落满煤灰。',
                             '捡了起来。是一把黄铜钥匙，上面粘着一些像泥土一样的黑色块状物。',
                             '仔细调查粘着的泥土，发现里面混有仅在该宅邸温室周围才有的特殊红粘土。',
-                            '前往后面的温室试着插进钥匙。完全吻合，里面雑乱地擺放着兰花盆栽。',
-                            '【假设】钥匙上附着的泥土，与昨晚因暴雨流失の“书房窗外的泥土”成分完全一致。'
+                            '前往后面的温室试着插入钥匙。完全吻合，里面杂乱地摆放着兰花盆栽。',
+                            '【假设】钥匙上附着的泥土，与昨晚因暴雨冲刷流失的“书房窗外的泥土”成分完全一致。'
                         ]
                     }
                 },
@@ -1359,7 +1411,7 @@
                 const wrapper = document.createElement('div');
                 wrapper.className = "bg-stone-50 border border-stone-200 rounded p-3 shadow-sm";
                 
-                const steps = ["知らない", "知る", "探求", "推論", "仮説検証"];
+                const steps = ui().narrativeSteps;
                 let stepsHtml = '';
                 
                 steps.forEach((stepName, i) => {
@@ -1409,80 +1461,89 @@
         function initGlossaryDictionaryUI() {
             const container = document.getElementById('glossary-items-container');
             container.innerHTML = '';
-            
-            // 認知レベルに合わせてリアルタイムに辞書ステータスを連動
+            const t = ui();
+            const lang = appState.language;
+
+            // 認知レベルに合わせてリアルタイムに辞書ステータス(state)を連動（表示文字列とは分離）
             const project = gameDatabase.doujin;
             if (project.evidence.format.level >= 4) {
-                glossaryDatabase.format.status = "理解済 ✨";
-                glossaryDatabase.gutter.status = "理解済 ✨";
+                glossaryDatabase.format.state = "unlocked";
+                glossaryDatabase.gutter.state = "unlocked";
             } else if (project.evidence.format.level >= 2) {
-                glossaryDatabase.format.status = "探求中 🔍";
+                glossaryDatabase.format.state = "inquiry";
+                glossaryDatabase.gutter.state = "locked";
             } else {
-                glossaryDatabase.format.status = "未理解 🔒";
-                glossaryDatabase.gutter.status = "未理解 🔒";
+                glossaryDatabase.format.state = "locked";
+                glossaryDatabase.gutter.state = "locked";
             }
 
             if (project.evidence.cost.level >= 4) {
-                glossaryDatabase.cost.status = "理解済 ✨";
-                glossaryDatabase.cmyk.status = "理解済 ✨";
-                glossaryDatabase.pp.status = "理解済 ✨";
+                glossaryDatabase.cost.state = "unlocked";
+                glossaryDatabase.cmyk.state = "unlocked";
+                glossaryDatabase.pp.state = "unlocked";
             } else if (project.evidence.cost.level >= 2) {
-                glossaryDatabase.cost.status = "探求中 🔍";
+                glossaryDatabase.cost.state = "inquiry";
+                glossaryDatabase.cmyk.state = "locked";
+                glossaryDatabase.pp.state = "locked";
             } else {
-                glossaryDatabase.cost.status = "未理解 🔒";
-                glossaryDatabase.cmyk.status = "未理解 🔒";
-                glossaryDatabase.pp.status = "未理解 🔒";
+                glossaryDatabase.cost.state = "locked";
+                glossaryDatabase.cmyk.state = "locked";
+                glossaryDatabase.pp.state = "locked";
             }
 
             if (project.subPhase === 'colophon' || project.subPhase === 'review' || project.subPhase === 'legal') {
-                glossaryDatabase.colophon.status = "理解済 ✨";
+                glossaryDatabase.colophon.state = "unlocked";
             } else {
-                glossaryDatabase.colophon.status = "未理解 🔒";
+                glossaryDatabase.colophon.state = "locked";
             }
 
             let unlockedCount = 0;
             Object.entries(glossaryDatabase).forEach(([key, item]) => {
-                const isUnlocked = item.status === "理解済 ✨";
+                const isUnlocked = item.state === "unlocked";
                 if (isUnlocked) unlockedCount++;
+                const title = lang === 'ja' ? item.title : (item.titleZh || item.title);
+                const desc = lang === 'ja' ? item.desc : (item.descZh || item.desc);
 
                 const card = document.createElement('div');
                 card.className = `p-3 rounded border transition-all duration-300 shadow-sm ${
-                    isUnlocked 
-                        ? 'bg-sky-50/50 border-sky-300' 
+                    isUnlocked
+                        ? 'bg-sky-50/50 border-sky-300'
                         : 'bg-stone-50 border-stone-200 opacity-65'
                 }`;
 
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-1">
                         <span class="text-xs font-bold font-serif ${isUnlocked ? 'text-sky-800' : 'text-stone-500'}">
-                            ${item.title}
+                            ${title}
                         </span>
                         <span class="text-[9px] px-1 rounded font-bold font-mono ${
                             isUnlocked ? 'bg-sky-100 text-sky-800' : 'bg-stone-200 text-stone-500'
                         }">
-                            ${item.status}
+                            ${t.glossaryStatus[item.state]}
                         </span>
                     </div>
                     <p class="text-[10px] ${isUnlocked ? 'text-stone-700' : 'text-stone-400'} leading-relaxed font-serif">
-                        ${isUnlocked ? item.desc : "対応する認知フラグ（原稿や予算）レベルを高めることでアンロックされます。"}
+                        ${isUnlocked ? desc : t.glossaryLockedDesc}
                     </p>
                 `;
                 container.appendChild(card);
             });
 
             const unlockRate = Math.round((unlockedCount / Object.keys(glossaryDatabase).length) * 100);
-            document.getElementById('dictionary-unlock-rate').innerText = `獲得率: ${unlockRate}%`;
+            document.getElementById('dictionary-unlock-rate').innerText = t.glossaryRate(unlockRate);
         }
 
         // --- Magic ToDo & Task Avalanche システム ---
         function initMagicTodoUI() {
+            const t = ui();
+            const lang = appState.language;
             const target = todoDecompositionState.target;
             const db = magicTodoDatabase[target];
             const currentLevel = db.levels[todoDecompositionState.currentLevelIndex];
 
-            // メーター群アップデート
-            document.getElementById('todo-resolution-level').innerText = currentLevel.name;
-            document.getElementById('todo-total-time').innerText = `${currentLevel.time} 時間`;
+            // メーター群アップデート（言語連動）
+            document.getElementById('todo-resolution-level').innerText = lang === 'ja' ? currentLevel.name : (currentLevel.nameZh || currentLevel.name);
+            document.getElementById('todo-total-time').innerText = t.todoTime(currentLevel.time);
 
             // 精神的負荷炎の表示
             const fireContainer = document.getElementById('todo-panic-fire');
@@ -1501,19 +1562,20 @@
             // ツリー構築
             const treeContainer = document.getElementById('todo-tree-container');
             treeContainer.innerHTML = '';
-            document.getElementById('decomposed-tasks-count').innerText = `${currentLevel.tasks.length}個のタスク`;
+            document.getElementById('decomposed-tasks-count').innerText = t.todoCount(currentLevel.tasks.length);
 
             currentLevel.tasks.forEach((task, index) => {
                 const item = document.createElement('div');
                 item.className = "flex items-start gap-2 p-1.5 hover:bg-stone-50 rounded transition";
-                
+
+                const taskText = lang === 'ja' ? task.text : (task.textZh || task.text);
                 // 階層があるか（タスク解像度が高まるとインデントやインジケータを追加）
-                const isSubTask = task.text.includes('：') || task.text.includes('（');
+                const isSubTask = taskText.includes('：') || taskText.includes('（') || taskText.includes('（');
                 const paddingClass = isSubTask ? "pl-4 text-stone-600 border-l border-sky-200 ml-1" : "font-bold text-stone-800";
 
                 item.innerHTML = `
                     <input type="checkbox" id="todo-task-${index}" class="w-3.5 h-3.5 rounded text-sky-600 accent-sky-600 mt-0.5 shrink-0" ${task.done ? 'checked' : ''}>
-                    <span class="${paddingClass} leading-relaxed text-[11px]">${task.text}</span>
+                    <span class="${paddingClass} leading-relaxed text-[11px]">${taskText}</span>
                 `;
                 treeContainer.appendChild(item);
             });
@@ -1528,11 +1590,11 @@
             if (todoDecompositionState.currentLevelIndex < 2) {
                 todoDecompositionState.currentLevelIndex++;
                 writeLog(`[MAGIC-TODO] Resolution expanded dynamically. Subtasks generated with AI.`, 'system');
-                showToast("Magic ToDo: タスクの解像度を爆発的に細分化しました！");
+                showToast(ui().todoExpandToast);
             } else {
                 todoDecompositionState.currentLevelIndex = 0;
                 writeLog(`[MAGIC-TODO] Tasks consolidated.`, 'info');
-                showToast("あまりの膨大さにプレイヤーが現実逃避しました。タスクを畳みます。");
+                showToast(ui().todoFoldToast);
             }
 
             // 心理フローへのフィードバック（恐怖・不安）
@@ -1603,7 +1665,7 @@
             const prevLevel = item.level;
             item.level++;
 
-            const steps = ["知らない", "知る", "探求", "推論", "仮説検証"];
+            const steps = ui().narrativeSteps;
             const currentStepName = steps[item.level];
 
             document.getElementById(`level-${id}`).innerText = item.level;
@@ -1794,7 +1856,7 @@
             const prevLevel = item.level;
             item.level++;
 
-            const steps = ["知らない", "知る", "探求", "推論", "仮説検証"];
+            const steps = ui().narrativeSteps;
             const currentStepName = steps[item.level];
 
             document.getElementById(`level-${evidenceId}`).innerText = item.level;
