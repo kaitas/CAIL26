@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Judge & Doujin Shi-Narrative Design Suite V5</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Serif JP and JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;500;700;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            /* ライトブルー（デフォルト） */
+            --primary-theme: #0284c7;
+            --primary-light: #e0f2fe;
+            --primary-border: #7dd3fc;
+            --bg-theme-main: #f0f7fc;
+            --bg-theme-panel: #ffffff;
+            --bg-theme-console: #e0f2fe;
+            --text-theme-main: #1e293b;
+            --text-theme-muted: #475569;
+            --text-theme-bright: #0369a1;
+            --parchment-bg: #ffffff;
+            --parchment-text: #0f172a;
+        }
+
+        body {
+            font-family: 'Noto Serif JP', serif;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            background-color: var(--bg-theme-main);
+            color: var(--text-theme-main);
+        }
+        .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* カスタムCSS変数による動的スタイル適用 */
+        .dynamic-panel {
+            background-color: var(--bg-theme-panel);
+            color: var(--text-theme-main);
+            border-color: var(--primary-border);
+        }
+        .dynamic-console {
+            background-color: var(--bg-theme-console);
+            border-top: 1px solid var(--primary-border);
+            color: var(--text-theme-main);
+        }
+        .dynamic-wood-panel {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-theme-main) 100%);
+            border: 2px solid var(--primary-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .dynamic-border {
+            border-color: var(--primary-border);
+        }
+        .dynamic-text-accent {
+            color: var(--text-theme-bright);
+        }
+        .dynamic-parchment {
+            background-color: var(--parchment-bg);
+            color: var(--parchment-text);
+            border: 1px solid var(--primary-border);
+        }
+
+        /* スクロールバー設定 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+
+        /* アラートトウガラシメーターのアニメーション */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        .animate-shake {
+            animation: shake 0.2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="border-b-2 dynamic-border px-6 py-3 flex items-center justify-between z-10 shrink-0 shadow-lg dynamic-panel transition-colors duration-300">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded bg-sky-600 flex items-center justify-center shadow-md text-white" id="header-icon-box">
+                <i data-lucide="book-open" class="w-5 h-5 text-white" id="header-icon"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight tracking-wider" id="header-title">
+                    NARRATIVE SIMULATOR V5 <span class="text-[11px] font-mono font-normal px-2 py-0.5 bg-black/5 border border-stone-500/20 rounded ml-2">JSON EXPORTABLE SUITE</span>
+                </h1>
+                <p class="text-[10px] text-stone-500" id="header-subtitle">ゆずの性格設計追加、シナリオJSONおよび単体動作プレイヤーHTMLのエクスポート書き出しツール</p>
+            </div>
+        </div>
+        
+        <!-- コントロール群 (リアルタイムカラーピッカー、言語切替、プロジェクト) -->
+        <div class="flex items-center gap-4">
+            
+            <!-- 動的カラーピッカーセクション -->
+            <div class="flex items-center gap-2 bg-black/5 p-1 px-2 rounded border border-stone-500/15 text-xs">
+                <span class="text-[9px] font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1">
+                    <i data-lucide="palette" class="w-3 h-3"></i> Color Picker
+                </span>
+                <!-- プライマリテーマ色 -->
+                <input type="color" id="theme-color-picker" oninput="applyCustomThemeColor(this.value)" class="w-5 h-5 rounded cursor-pointer border border-stone-300" value="#0284c7" title="メイン色を自由に変更可能">
+            </div>
+
+            <!-- 言語切り替え -->
+            <div class="flex items-center gap-1.5 bg-black/5 p-1 rounded border border-stone-500/15">
+                <button onclick="setLanguage('ja')" id="lang-btn-ja" class="px-2 py-1 text-[10px] font-bold rounded bg-sky-600 text-white transition">日本語</button>
+                <button onclick="setLanguage('zh')" id="lang-btn-zh" class="px-2 py-1 text-[10px] font-bold rounded text-stone-500 hover:text-stone-800 transition">中文 (北京话)</button>
+            </div>
+
+            <!-- プリセットスキン切替 -->
+            <div class="flex items-center gap-1 bg-black/5 p-1 rounded border border-stone-500/15">
+                <button onclick="applyPresetTheme('lightblue')" class="w-4 h-4 rounded-full bg-sky-400 border border-sky-600" title="Light Blue"></button>
+                <button onclick="applyPresetTheme('lightyellow')" class="w-4 h-4 rounded-full bg-yellow-200 border border-yellow-500" title="Light Yellow"></button>
+                <button onclick="applyPresetTheme('pastel')" class="w-4 h-4 rounded-full bg-pink-300 border border-purple-400" title="Pastel Pink"></button>
+                <button onclick="applyPresetTheme('classic')" class="w-4 h-4 rounded-full bg-stone-800 border border-amber-600" title="Classic Mahogany"></button>
+            </div>
+
+            <!-- プロジェクト動的セレクター -->
+            <div class="flex items-center gap-2">
+                <select id="project-selector" onchange="changeActiveProject(this.value)" class="bg-black/5 text-xs border border-stone-500/30 px-3 py-1.5 rounded outline-none cursor-pointer hover:border-sky-500 transition font-serif font-bold">
+                    <option value="doujin" selected>Project-D: まじかるベーカリー (同人誌)</option>
+                    <option value="judge">Project-J: マナーハウスの銃声 (判事サンプル)</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインワークスペース -->
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- =================== LEFT PANEL: PLAYABLE GAME ENGINE =================== -->
+        <section class="w-1/2 border-r border-stone-300/40 flex flex-col p-4 relative overflow-y-auto dynamic-panel">
+            <div class="flex items-center justify-between mb-3 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold tracking-widest uppercase font-serif" id="game-scope-label">Simulation Room</span>
+                    <span class="text-xs text-stone-500" id="game-scope-sub">| ノベル＆シミュレーション画面</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="resetGame()" class="px-2.5 py-1 text-xs bg-black/5 hover:bg-black/10 border border-stone-400/50 text-stone-700 rounded flex items-center gap-1 transition">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span data-i18n="reset-btn">最初からやり直す</span>
+                    </button>
+                    <span id="game-phase-badge" class="px-2.5 py-1 text-xs rounded font-bold uppercase tracking-wider bg-black/5 border border-sky-600/40">
+                        サークル結成 (BEGINNING)
+                    </span>
+                </div>
+            </div>
+
+            <!-- メインシミュレータコンソール (木目調などテーマ連動) -->
+            <div id="game-screen" class="flex-1 flex flex-col dynamic-wood-panel rounded-lg relative overflow-hidden min-h-[520px]">
+                
+                <!-- 空気感演出 -->
+                <canvas id="court-canvas" class="absolute inset-0 pointer-events-none opacity-20"></canvas>
+                
+                <!-- トースト通知 -->
+                <div id="game-toast" class="absolute top-4 left-4 right-4 z-20 transform -translate-y-12 opacity-0 transition-all duration-300 pointer-events-none">
+                    <div class="dynamic-parchment border-2 border-sky-600 text-stone-900 px-4 py-3 rounded shadow-2xl flex items-center gap-3">
+                        <i data-lucide="info" class="w-5 h-5 shrink-0 dynamic-text-accent"></i>
+                        <span id="game-toast-text" class="text-xs font-bold">認知段階が更新されました。</span>
+                    </div>
+                </div>
+
+                <!-- =================== PROJECT DOUJIN: GAME UI =================== -->
+                <div id="doujin-game-ui" class="absolute inset-0 flex flex-col justify-between p-5 z-10 overflow-y-auto">
+                    
+                    <!-- 進行フェーズ切り替えナビゲーション -->
+                    <div class="flex justify-between items-center border-b border-stone-400/20 pb-3 shrink-0">
+                        <div>
+                            <span class="text-xs tracking-wider font-bold font-serif dynamic-text-accent" data-i18n="sim-title">同人誌製作体験シミュレーター</span>
+                            <h3 class="text-base font-bold font-serif" id="doujin-title" data-i18n="sim-sub">「中学生、はじめて本を作る」</h3>
+                        </div>
+                        <!-- タブ式進行度 -->
+                        <div class="flex bg-black/5 p-0.5 rounded border border-stone-300 text-[10px]" id="step-tabs">
+                            <button id="step-btn-write" onclick="switchDoujinSubPhase('write')" class="px-2 py-1 rounded font-bold text-sky-700 bg-white shadow-sm border border-stone-200">1. 原稿＆仕様</button>
+                            <button id="step-btn-colophon" onclick="switchDoujinSubPhase('colophon')" class="px-2 py-1 rounded font-bold text-stone-500">2. 奥付必須要件</button>
+                            <button id="step-btn-review" onclick="switchDoujinSubPhase('review')" class="px-2 py-1 rounded font-bold text-stone-500">3. 主催検閲＆入稿</button>
+                            <button id="step-btn-legal" onclick="switchDoujinSubPhase('legal')" class="px-2 py-1 rounded font-bold text-stone-500">4. 納本・納税会計</button>
+                        </div>
+                    </div>
+
+                    <!-- サブ領域 1: 執筆＆ハザード対処 -->
+                    <div id="doujin-sub-write" class="flex-1 my-3 flex flex-col justify-between">
+                        <div>
+                            <p class="text-xs leading-relaxed mb-3" data-i18n="sub-write-desc">
+                                中学生女子2人のサークル「まじかるベーカリー」。初めての合同誌製作に大苦戦！<br>
+                                机に散らばる「問題」をクリックして認知レベルを上げ、執筆を成功させましょう。
+                            </p>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- 課題1: 原稿仕様 (トンボと塗り足し) -->
+                                <div id="node-format" onclick="advanceDoujinState('format')" class="cursor-pointer bg-white/60 border border-stone-300 hover:border-sky-500 p-3 rounded transition relative group shadow-sm">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[9px] font-mono bg-stone-100 px-1 py-0.5 rounded text-sky-700">Node 1</span>
+                                        <span id="badge-format" class="text-[9px] bg-stone-200 text-stone-600 px-1.5 rounded">未認知</span>
+                                    </div>
+                                    <h4 class="text-xs font-bold group-hover:text-sky-700 transition" data-i18n="node-format-title">原稿サイズと塗り足し</h4>
+                                    <p id="text-format" class="text-[11px] text-stone-600 mt-1 leading-relaxed" data-i18n="node-format-text">
+                                        「塗り足しって何だろう？適当に描いちゃダメかな…」
+                                    </p>
+                                    <div class="mt-2 text-[9px] flex justify-between">
+                                        <span>認知Lv: <span id="level-format" class="dynamic-text-accent font-mono font-bold">0</span>/4</span>
+                                        <span class="dynamic-text-accent group-hover:underline">解決する →</span>
+                                    </div>
+                                </div>
+
+                                <!-- 課題2: コスト感覚 -->
+                                <div id="node-cost" onclick="advanceDoujinState('cost')" class="cursor-pointer bg-white/60 border border-stone-300 hover:border-sky-500 p-3 rounded transition relative group shadow-sm">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[9px] font-mono bg-stone-100 px-1 py-0.5 rounded text-sky-700">Node 2</span>
+                                        <span id="badge-cost" class="text-[9px] bg-stone-200 text-stone-600 px-1.5 rounded">未認知</span>
+                                    </div>
+                                    <h4 class="text-xs font-bold group-hover:text-sky-700 transition" data-i18n="node-cost-title">印刷費用の予算計画</h4>
+                                    <p id="text-cost" class="text-[11px] text-stone-600 mt-1 leading-relaxed" data-i18n="node-cost-text">
+                                        「印刷所ってたくさんあって、いくらかかるか見当もつかない…」
+                                    </p>
+                                    <div class="mt-2 text-[9px] flex justify-between">
+                                        <span>認知Lv: <span id="level-cost" class="dynamic-text-accent font-mono font-bold">0</span>/4</span>
+                                        <span class="dynamic-text-accent group-hover:underline">解決する →</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 進行補助 -->
+                        <div class="p-3 bg-white/70 border border-stone-200 rounded flex justify-between items-center mt-2">
+                            <div>
+                                <span class="text-[10px] text-sky-700 block font-serif font-bold" data-i18n="knowledge-gained">現在の獲得知見</span>
+                                <div class="flex gap-1.5 mt-1" id="doujin-hypothesis-container">
+                                    <span class="text-[10px] text-stone-500 italic">まだ十分に理解できていない情報があります。</span>
+                                </div>
+                            </div>
+                            <button id="btn-goto-colophon" onclick="switchDoujinSubPhase('colophon')" class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded shadow transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                                <span data-i18n="goto-colophon">奥付の設計へ</span>
+                                <i data-lucide="chevron-right" class="w-3.5 h-3.5 inline"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- サブ領域 2: 奥付必須要件ミニパズル -->
+                    <div id="doujin-sub-colophon" class="flex-1 my-3 flex flex-col justify-between hidden">
+                        <div class="space-y-3">
+                            <h4 class="text-sm font-bold text-sky-800 font-serif" data-i18n="colophon-title">法務と連絡の要件：奥付に必須の6項目を配置せよ</h4>
+                            <p class="text-[11px] text-stone-600 leading-relaxed" data-i18n="colophon-desc">
+                                同人誌の最終ページ付近には、トラブル防止と法務のため「必須6項目」の記載が必要です。<br>
+                                右側の解説を参考に、正しい項目をチェックして奥付原稿を完成させましょう。
+                            </p>
+
+                            <div class="bg-white/80 p-3 rounded border border-stone-200 shadow-sm">
+                                <span class="text-[10px] text-stone-500 block mb-2 font-serif font-bold">【奥付編集フォーム】</span>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <label class="flex items-center gap-2 bg-stone-50 p-1.5 rounded cursor-pointer hover:bg-stone-100 transition">
+                                        <input type="checkbox" id="colo-opt-1" onchange="checkColophonProgress()" class="w-4 h-4 rounded text-sky-600 accent-sky-600">
+                                        <span>① 書名（タイトル）</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-stone-50 p-1.5 rounded cursor-pointer hover:bg-stone-100 transition">
+                                        <input type="checkbox" id="colo-opt-2" onchange="checkColophonProgress()" class="w-4 h-4 rounded text-sky-600 accent-sky-600">
+                                        <span>② 発行日</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-stone-50 p-1.5 rounded cursor-pointer hover:bg-stone-100 transition">
+                                        <input type="checkbox" id="colo-opt-3" onchange="checkColophonProgress()" class="w-4 h-4 rounded text-sky-600 accent-sky-600">
+                                        <span>③ 著者名（ペンネーム等）</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-stone-50 p-1.5 rounded cursor-pointer hover:bg-stone-100 transition">
+                                        <input type="checkbox" id="colo-opt-4" onchange="checkColophonProgress()" class="w-4 h-4 rounded text-sky-600 accent-sky-600">
+                                        <span>④ 発行者／サークル名</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-stone-50 p-1.5 rounded cursor-pointer hover:bg-stone-100 transition">
+                                        <input type="checkbox" id="colo-opt-5" onchange="checkColophonProgress()" class="w-4 h-4 rounded text-sky-600 accent-sky-600">
+                                        <span>⑤ 連絡先（メール/SNS）</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-stone-50 p-1.5 rounded cursor-pointer hover:bg-stone-100 transition">
+                                        <input type="checkbox" id="colo-opt-6" onchange="checkColophonProgress()" class="w-4 h-4 rounded text-sky-600 accent-sky-600">
+                                        <span>⑥ 印刷所名</span>
+                                    </label>
+                                </div>
+                                <div class="mt-3 bg-amber-50/50 p-2 rounded text-[11px] border border-amber-200">
+                                    <label class="flex items-start gap-2 cursor-pointer">
+                                        <input type="checkbox" id="colo-opt-fan" onchange="checkColophonProgress()" class="w-4 h-4 rounded text-amber-600 accent-amber-600 mt-0.5">
+                                        <span class="text-stone-700 font-bold">【二次創作免責】「本作は原作の二次創作であり、関係各社とは一切関係ありません」の一文を添える</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 border border-stone-200 p-3 rounded flex justify-between items-center mt-2">
+                            <span class="text-[11px] text-stone-500 font-bold" id="colophon-completion-status">不備あり: 必須項目がチェックされていません。</span>
+                            <button id="btn-goto-review" onclick="switchDoujinSubPhase('review')" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded shadow transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                                <span data-i18n="goto-review">イベント主催検閲へ</span>
+                                <i data-lucide="shield-alert" class="w-3.5 h-3.5 inline ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- サブ領域 3: イベント主催者レビュー（検閲）＆入稿 -->
+                    <div id="doujin-sub-review" class="flex-1 my-3 flex flex-col justify-between hidden">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-sm font-bold text-sky-800 font-serif" data-i18n="review-title">イベント主催者による適合性レビュー（検閲）</h4>
+                                <span class="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded border border-red-300 font-bold">REVIEW COMPLIANCE</span>
+                            </div>
+                            <p class="text-[11px] text-stone-600 leading-relaxed" data-i18n="review-desc">
+                                同人即売会では、主催者や見回りスタッフによって「表現規約」「全年齢対象の適合度」が監査されます。<br>
+                                中学生サークルのため「全年齢」区分の書籍となります。以下の表現が含まれていないか自己監査をパスしてください。
+                            </p>
+
+                            <div class="bg-white/80 p-3 rounded border border-stone-200 space-y-2 text-xs">
+                                <div class="flex items-center justify-between p-2 bg-stone-50 rounded border border-stone-100">
+                                    <span class="font-bold text-stone-700">成年向け描写（性・残虐表現など全年齢に反するもの）</span>
+                                    <select id="review-opt-r18" onchange="evaluateReview()" class="bg-white text-stone-800 border border-stone-300 rounded px-2 py-1 text-xs">
+                                        <option value="invalid" selected>「少し過激だし面白いから載せちゃおう」</option>
+                                        <option value="valid">「全年齢向けなので、全てカット/マイルドに修正した」</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center justify-between p-2 bg-stone-50 rounded border border-stone-100">
+                                    <span class="font-bold text-stone-700">原作公式ロゴ、イラストのトレース・直接使用</span>
+                                    <select id="review-opt-trace" onchange="evaluateReview()" class="bg-white text-stone-800 border border-stone-300 rounded px-2 py-1 text-xs">
+                                        <option value="invalid" selected>「公式サイトのロゴをそのまま表紙に貼り付けた」</option>
+                                        <option value="valid">「すべて自分たちで描いたファンアートと文字デザインにした」</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 border border-stone-200 p-3 rounded flex justify-between items-center mt-2">
+                            <span class="text-[11px] text-red-600 font-bold" id="review-status-text">現在：主催審査で頒布禁止（ペナルティ）判定です！</span>
+                            <button id="btn-goto-legal" onclick="runSubmission()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded shadow transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                                <span>印刷所へ入稿・即売会頒布！</span>
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5 inline ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- サブ領域 4: 国会図書館納本・税務会計 -->
+                    <div id="doujin-sub-legal" class="flex-1 my-3 flex flex-col justify-between hidden">
+                        <div class="space-y-3">
+                            <h4 class="text-sm font-bold text-sky-800 font-serif" data-i18n="legal-title">大ヒットの末に…国会図書館納本義務と納税義務</h4>
+                            <p class="text-[11px] text-stone-600 leading-relaxed" data-i18n="legal-desc">
+                                本が大量に売れたり利益が出た場合、同人活動であっても「法的な義務」が発生します。適切な選択を行いましょう。
+                            </p>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- 納本エリア -->
+                                <div class="bg-white/80 p-3 rounded border border-stone-200 shadow-sm">
+                                    <span class="text-[10px] font-bold text-sky-800 block mb-1">【国会図書館納本制度】</span>
+                                    <p class="text-[10px] text-stone-500 mb-2">国内で発行されたすべての出版物（同人誌も含む）は納本義務があります（特に100部以上普及時）。</p>
+                                    <select id="legal-opt-deposit" onchange="evaluateLegal()" class="w-full bg-white text-stone-800 border border-stone-300 rounded p-1 text-xs">
+                                        <option value="ignore">「めんどくさいし、無視して秘密にしておく」</option>
+                                        <option value="deposit" selected>「文化財として後世に残すため、国会図書館へ1部寄贈する」</option>
+                                    </select>
+                                </div>
+
+                                <!-- 税務エリア -->
+                                <div class="bg-white/80 p-3 rounded border border-stone-200 shadow-sm">
+                                    <span class="text-[10px] font-bold text-sky-800 block mb-1">【税務署への申告と納税】</span>
+                                    <p class="text-[10px] text-stone-500 mb-2">趣味の利益であっても、年間所得（純利益）が一定額（一般に雑所得20万円）を超えた場合は確定申告が必要です。</p>
+                                    <select id="legal-opt-tax" onchange="evaluateLegal()" class="w-full bg-white text-stone-800 border border-stone-300 rounded p-1 text-xs">
+                                        <option value="hide">「お小遣いだし、税務署には言わずに隠しておく」</option>
+                                        <option value="declare" selected>「帳簿をつけておき、基準を超えたら正しく確定申告・納税する」</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 border border-stone-200 p-3 rounded flex justify-between items-center mt-2">
+                            <p class="text-[10px] text-stone-500 max-w-xs">すべての法的・税務処理のシミュレーションの心構えが完了しました。完結ボタンを押してください。</p>
+                            <button id="btn-run-final-eval" onclick="runFinalEvaluation()" class="px-5 py-2 bg-gradient-to-r from-sky-600 to-sky-700 text-white text-xs font-black rounded shadow-lg transition">
+                                <span>創作活動を完結する！</span>
+                                <i data-lucide="party-popper" class="w-3.5 h-3.5 inline ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- =================== B. PROJECT JUDGE: GAME UI (SAMPLE) =================== -->
+                <div id="judge-game-ui" class="absolute inset-0 flex flex-col justify-between p-6 z-10 hidden overflow-y-auto">
+                    <div id="investigation-phase-ui" class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start border-b border-stone-300 pb-2">
+                                <div>
+                                    <span class="text-xs text-stone-500 font-bold font-serif uppercase tracking-wider">CASE-FILE #401</span>
+                                    <h3 class="text-base font-bold mt-1 font-serif text-stone-900">マナーハウス書斎・深夜の銃声事件</h3>
+                                    <p class="text-[11px] text-stone-600 mt-1">
+                                        手がかりをクリックし、プレイヤーの認知を「仮説検証(Lv4)」まで引き上げて法廷の武器にしましょう。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3 mt-4">
+                                <div id="node-watch" onclick="advanceNarrativeState('watch')" class="cursor-pointer bg-white/70 border border-stone-300 hover:border-sky-500 p-3 rounded transition group relative shadow-sm">
+                                    <h4 class="text-xs font-bold text-stone-800 group-hover:text-sky-700">煤けた金の懐中時計</h4>
+                                    <p id="text-watch" class="text-[11px] text-stone-600 mt-1 leading-relaxed">机に転がっている何か。まだ手にとっていない。</p>
+                                    <div class="mt-2 text-[9px] text-stone-500 font-mono flex justify-between">
+                                        <span>LEVEL: <span id="level-watch" class="font-bold">0</span></span>
+                                        <span class="dynamic-text-accent font-bold">調べる →</span>
+                                    </div>
+                                </div>
+
+                                <div id="node-key" onclick="advanceNarrativeState('key')" class="cursor-pointer bg-white/70 border border-stone-300 hover:border-sky-500 p-3 rounded transition group relative shadow-sm">
+                                    <h4 class="text-xs font-bold text-stone-800 group-hover:text-sky-700">泥のついた温室の鍵</h4>
+                                    <p id="text-key" class="text-[11px] text-stone-600 mt-1 leading-relaxed">暖炉の脇に落ちている金属。まだ手にとっていない。</p>
+                                    <div class="mt-2 text-[9px] text-stone-500 font-mono flex justify-between">
+                                        <span>LEVEL: <span id="level-key" class="font-bold">0</span></span>
+                                        <span class="dynamic-text-accent font-bold">調べる →</span>
+                                    </div>
+                                </div>
+
+                                <div id="node-letter" onclick="advanceNarrativeState('letter')" class="cursor-pointer bg-white/70 border border-stone-300 hover:border-sky-500 p-3 rounded transition group relative shadow-sm">
+                                    <h4 class="text-xs font-bold text-stone-800 group-hover:text-sky-700">ちぎられた脅迫状</h4>
+                                    <p id="text-letter" class="text-[11px] text-stone-600 mt-1 leading-relaxed">ゴミ箱の中の紙くず。広げてみる必要がありそうだ。</p>
+                                    <div class="mt-2 text-[9px] text-stone-500 font-mono flex justify-between">
+                                        <span>LEVEL: <span id="level-letter" class="font-bold">0</span></span>
+                                        <span class="dynamic-text-accent font-bold">調べる →</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 border border-stone-200 p-3 rounded flex justify-between items-center mt-3 shadow-sm">
+                            <span class="text-[10px] text-stone-500 italic font-serif">※温室の鍵を仮説(Lv4)にすることで、裁判(開廷)へ移行できます。</span>
+                            <button id="btn-goto-trial" onclick="transitionToTrial()" class="px-4 py-2 bg-sky-600 text-white text-xs font-bold rounded shadow transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                                <span>開廷する</span>
+                                <i data-lucide="scale" class="w-3.5 h-3.5 inline ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 裁判フェーズUI (サンプル) -->
+                    <div id="trial-phase-ui" class="flex-1 flex flex-col justify-between hidden">
+                        <div class="text-center my-3 bg-white/80 p-4 rounded border border-stone-200 shadow-sm">
+                            <span class="text-stone-700 block text-xs font-bold">執事レナード: 「私は温室にいました（母屋に近づいていない）」</span>
+                            <p class="text-xs text-sky-700 font-bold mt-2 font-serif">論理的な仮説「温室の鍵」を提示して矛盾を指摘してください。</p>
+                        </div>
+                        <div class="flex justify-center gap-3">
+                            <button onclick="triggerContradictionCheck()" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded shadow-lg transition">
+                                【仮説提示】温室の鍵の泥を突きつける！
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =================== C. COMMON SYSTEM: VICTORY SCREEN =================== -->
+                <div id="victory-phase-ui" class="absolute inset-0 flex flex-col p-6 z-20 justify-between hidden bg-stone-900/95 text-white">
+                    <div class="flex-1 flex flex-col justify-center items-center text-center max-w-md mx-auto">
+                        <div class="w-14 h-14 rounded-full bg-stone-800 border-2 border-sky-400 flex items-center justify-center mb-4 shadow-xl text-sky-400">
+                            <i data-lucide="party-popper" class="w-7 h-7" id="victory-icon"></i>
+                        </div>
+                        <span class="text-xs font-serif tracking-widest uppercase text-sky-300" id="victory-badge-txt">NARRATIVE RESOLUTION</span>
+                        <h3 class="text-xl font-bold font-serif text-white mt-1" id="victory-title-txt">体験目標への「到達」</h3>
+                        <p class="text-xs text-stone-300 mt-3 leading-relaxed" id="victory-desc-txt">
+                            認知のレベルを一つずつ引き上げたプレイヤーは、完璧な仮説を持って体験のクライマックスへと到達しました。
+                        </p>
+                        
+                        <div class="mt-4 p-4 bg-stone-800 border border-stone-700 rounded text-left w-full text-xs" id="victory-summary-card">
+                            <!-- JS動的挿入 -->
+                        </div>
+                    </div>
+                    <div class="flex justify-center">
+                        <button onclick="resetGame()" class="px-6 py-2 bg-stone-800 hover:bg-stone-700 border border-stone-600 rounded text-xs font-bold text-sky-300 transition">
+                            次の計画へ (リセット)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 下部：テキストログ・ダイアログエリア (共通) -->
+                <div id="game-textbox" class="h-28 bg-stone-900 border-t border-stone-700 p-3 relative z-10 shrink-0 flex flex-col justify-between transition-colors duration-300 text-white">
+                    <div class="flex justify-between items-center text-[9px] text-sky-400 font-serif">
+                        <span id="textbox-speaker" class="font-bold font-serif">こむぎ (Komugi)</span>
+                        <span id="textbox-line-index">PAGE: 1 / 3</span>
+                    </div>
+                    <p id="textbox-content" class="text-xs text-stone-100 mt-1 leading-relaxed font-serif">
+                        「えへへ、あおいちゃん！私たちでオリジナルの同人誌、作ってみない！？」
+                    </p>
+                    <div class="flex justify-end mt-1">
+                        <button id="textbox-next-btn" onclick="advanceDialogue()" class="px-3 py-1 bg-stone-800 hover:bg-stone-700 border border-stone-600 rounded text-[11px] text-stone-200 flex items-center gap-1 transition">
+                            <span data-i18n="next-dialogue">読み進める</span>
+                            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 心理フローバランス / 集中度ゲージ -->
+            <div class="mt-3 bg-white/70 border border-stone-200 p-2.5 rounded flex items-center justify-between shrink-0 shadow-sm">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></div>
+                    <div>
+                        <span class="text-[11px] font-bold text-stone-800 block leading-none font-serif" data-i18n="flow-title">心理フローバランス (心理集中度)</span>
+                        <span class="text-[9px] text-stone-500" data-i18n="flow-desc">情報難度とスキル適性から動的に算出</span>
+                    </div>
+                </div>
+                <div class="w-1/2 flex items-center gap-2">
+                    <span class="text-[9px] text-stone-500 shrink-0">退屈 (Bored)</span>
+                    <div class="flex-1 bg-stone-200 h-2 rounded overflow-hidden p-0.5 border border-stone-300 relative">
+                        <div class="absolute inset-y-0 left-1/4 right-1/4 bg-sky-500/10 border-x border-sky-500/20"></div>
+                        <div id="flow-indicator-bar" class="bg-gradient-to-r from-sky-400 via-sky-600 to-red-500 h-full rounded transition-all duration-500" style="width: 40%;"></div>
+                    </div>
+                    <span class="text-[9px] text-stone-500 shrink-0">不安 (Anxiety)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================== RIGHT PANEL: DEVELOPER SUITE =================== -->
+        <section class="w-1/2 flex flex-col overflow-y-auto border-l border-stone-300/40 dynamic-panel transition-colors duration-300">
+            
+            <div class="border-b border-stone-200 px-4 flex shrink-0 shadow-sm dynamic-console transition-colors duration-300">
+                <button onclick="switchDevTab('tab-narrative')" id="tab-btn-narrative" class="px-3.5 py-3 text-xs font-bold border-b-2 border-sky-600 text-sky-800 transition flex items-center gap-1">
+                    <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
+                    体験設計
+                </button>
+                <button onclick="switchDevTab('tab-magic-todo')" id="tab-btn-magic-todo" class="px-3.5 py-3 text-xs font-bold border-b-2 border-transparent text-stone-500 hover:text-stone-800 transition flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                    Magic ToDo <span class="bg-red-500 text-white text-[9px] px-1 rounded-full animate-pulse" id="alert-badge-todo">!</span>
+                </button>
+                <button onclick="switchDevTab('tab-glossary')" id="tab-btn-glossary" class="px-3.5 py-3 text-xs font-bold border-b-2 border-transparent text-stone-500 hover:text-stone-800 transition flex items-center gap-1">
+                    <i data-lucide="book" class="w-3.5 h-3.5"></i>
+                    製本用語辞書
+                </button>
+                <button onclick="switchDevTab('tab-characters')" id="tab-btn-characters" class="px-3.5 py-3 text-xs font-bold border-b-2 border-transparent text-stone-500 hover:text-stone-800 transition flex items-center gap-1">
+                    <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                    人物設計
+                </button>
+                <button onclick="switchDevTab('tab-script')" id="tab-btn-script" class="px-3.5 py-3 text-xs font-bold border-b-2 border-transparent text-stone-500 hover:text-stone-800 transition flex items-center gap-1">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                    Script設計 & 出力
+                </button>
+            </div>
+
+            <div class="flex-1 p-5 flex flex-col gap-5 overflow-y-auto">
+
+                <!-- =================== TAB 1: ナラティブ体験マップ =================== -->
+                <div id="tab-narrative" class="flex-1 flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-sm font-bold font-serif text-sky-800">Narrative Experience Map & Checklist</h3>
+                            <p class="text-xs text-stone-500 mt-0.5">
+                                プレイヤーが「何も知らない」状態から「仮説検証・到達」に至る電子フラグを追跡します。
+                            </p>
+                        </div>
+                        <div class="bg-black/5 px-2 py-0.5 rounded border border-stone-300 text-[9px] text-sky-800 font-mono font-bold">
+                            ACTIVE STATUS
+                        </div>
+                    </div>
+
+                    <!-- 動的生成エリア -->
+                    <div class="space-y-3" id="dev-narrative-container"></div>
+
+                    <!-- シーケンス・チェックポイント設計 -->
+                    <div class="p-3 bg-white border border-stone-200 rounded text-xs text-stone-700 leading-relaxed font-serif shadow-sm">
+                        <span class="font-bold text-sky-700 block mb-1">📌 ユーザーナラティブ設計（解決チェックポイント）</span>
+                        <ul class="list-disc pl-4 space-y-1 text-stone-600 text-[11px]">
+                            <li><strong>Checkpoint 1: 原稿仕様</strong> - トンボ(裁断線)と3mm塗り足しの理解 [Lv4 仮説検証]</li>
+                            <li><strong>Checkpoint 2: 予算設計</strong> - オンデマンド印刷の原価を把握、お小遣い内で予算編成</li>
+                            <li><strong>Checkpoint 3: 奥付整合性</strong> - 発行者、連絡先、印刷所などの「必須6項目」が揃っていること</li>
+                            <li><strong>Checkpoint 4: 主催者検閲</strong> - 二次創作免責の記述および全年齢規約遵守のクリア</li>
+                            <li><strong>Checkpoint 5: 納本・税務</strong> - 普及時の国会図書館への納本手続きと利益申告の心構え</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- =================== TAB 2: Magic ToDo & Task Avalanche =================== -->
+                <div id="tab-magic-todo" class="flex-1 flex flex-col gap-4 hidden">
+                    <div class="flex justify-between items-center border-b border-stone-200 pb-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-sky-800 font-serif flex items-center gap-1.5">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-sky-600"></i>
+                                Magic ToDo - Task Avalanche Monitor
+                            </h3>
+                            <p class="text-xs text-stone-500 mt-0.5">
+                                goblin.toolsをオマージュ。プレイヤーが創作に踏み込むにつれ、タスク解像度（＝必要な時間と恐怖）が爆発的に急上昇するギミック。
+                            </p>
+                        </div>
+                        <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold border border-amber-300 animate-pulse">AUTOMATIC LEVEL AUDIT</span>
+                    </div>
+
+                    <!-- 恐怖のメーター群 -->
+                    <div class="grid grid-cols-3 gap-3 bg-stone-50 p-3 rounded border border-stone-200">
+                        <div class="text-center">
+                            <span class="text-[9px] text-stone-500 block uppercase">現在のタスク解像度</span>
+                            <span id="todo-resolution-level" class="text-lg font-bold text-sky-700">通常 (Lv.1)</span>
+                        </div>
+                        <div class="text-center border-x border-stone-200">
+                            <span class="text-[9px] text-stone-500 block uppercase">総想定時間（爆発）</span>
+                            <span id="todo-total-time" class="text-lg font-bold text-red-600">20 時間</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[9px] text-stone-500 block uppercase">精神的作業負荷</span>
+                            <div class="flex items-center justify-center gap-0.5 mt-1 text-red-500" id="todo-panic-fire">
+                                <i data-lucide="flame" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Magic ToDoコントロール -->
+                    <div class="flex gap-2">
+                        <select id="todo-target-picker" class="flex-1 bg-white text-stone-800 border border-stone-300 rounded px-2 py-1.5 text-xs font-serif font-bold">
+                            <option value="award">目標：「漫画賞で新人賞を取る」 (こむぎの発案)</option>
+                            <option value="book">目標：「初めての同人誌を印刷して頒布する」 (あおいの発案)</option>
+                        </select>
+                        <button onclick="triggerMagicDecomposition()" class="px-4 py-1.5 bg-gradient-to-r from-sky-600 to-sky-700 text-white text-xs font-bold rounded shadow hover:from-sky-700 hover:to-sky-800 transition flex items-center gap-1 shrink-0">
+                            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
+                            タスクをさらに細分化！ ✨
+                        </button>
+                    </div>
+
+                    <!-- リアルタイム時間爆発プログレスバー -->
+                    <div class="bg-white p-3 rounded border border-stone-200 space-y-1">
+                        <div class="flex justify-between text-[10px] text-stone-600 font-bold">
+                            <span>締め切りハザード圧迫率 (Task Pressure)</span>
+                            <span id="task-pressure-percent">12%</span>
+                        </div>
+                        <div class="w-full bg-stone-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-stone-200">
+                            <div id="task-pressure-bar" class="h-full rounded-full bg-gradient-to-r from-sky-500 via-amber-500 to-red-600 transition-all duration-700" style="width: 12%"></div>
+                        </div>
+                    </div>
+
+                    <!-- タスクリストツリー -->
+                    <div class="bg-white rounded border border-stone-200 overflow-hidden shadow-sm flex-1 max-h-[300px] flex flex-col">
+                        <div class="px-3 py-2 bg-stone-50 border-b border-stone-200 flex justify-between items-center text-[10px] text-stone-500">
+                            <span class="font-bold">DECOMPOSED TASK CHECKLIST</span>
+                            <span id="decomposed-tasks-count">4個のタスク</span>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-3 space-y-2 font-serif text-xs" id="todo-tree-container">
+                            <!-- JSによる動的タスクツリーの展開 -->
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-stone-500 italic text-center">
+                        ※注意: 解像度を最高レベルまで引き上げると、タスクが雪崩(Avalanche)のように細分化され、プレイヤーの現実逃避ハザード（不安ゲージ上昇）が発生します！
+                    </p>
+                </div>
+
+                <!-- =================== TAB 3: 製本用語辞書 (Glossary) =================== -->
+                <div id="tab-glossary" class="flex-1 flex flex-col gap-4 hidden">
+                    <div class="flex justify-between items-center border-b border-stone-200 pb-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-sky-800 font-serif">同人印刷・製本専門用語辞書</h3>
+                            <p class="text-xs text-stone-500 mt-0.5">
+                                ゲーム内で獲得した、製本に必要な重要印刷用語集。フラグレベルが最大になると完全にアンロックされます。
+                            </p>
+                        </div>
+                        <span class="bg-sky-100 text-sky-800 text-[9px] px-2 py-0.5 rounded font-bold" id="dictionary-unlock-rate">獲得率: 0%</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3" id="glossary-items-container">
+                        <!-- 動的辞書カード群 -->
+                    </div>
+                </div>
+
+                <!-- =================== TAB 4: 登場人物設計図 (Needs, Wants) =================== -->
+                <div id="tab-characters" class="flex-1 flex flex-col gap-4 hidden">
+                    <h3 class="text-sm font-bold text-sky-800 font-serif">登場人物設計図 (中学生女子3名)</h3>
+                    <p class="text-xs text-stone-500">シナリオ・キャラクター設計における内発的動機（Needs & Wants）を監査・定義します。</p>
+
+                    <div class="grid grid-cols-3 gap-4" id="characters-list-container">
+                        <!-- こむぎ -->
+                        <div class="bg-stone-50 p-4 rounded border border-stone-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center font-bold shrink-0">麦</div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-stone-900">こむぎ (Komugi)</h4>
+                                    <span class="text-[9px] text-stone-500">作画・ビジュアル担当</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-[11px] leading-relaxed">
+                                <div>
+                                    <span class="text-sky-700 font-bold block text-[10px]">【Needs (表面的な欲求)】</span>
+                                    <p class="text-stone-600">自分の描いたイラストや漫画を本にして、即売会でたくさんの人に手にとって褒められたい！</p>
+                                </div>
+                                <div class="border-t border-stone-200 pt-1.5">
+                                    <span class="text-sky-700 font-bold block text-[10px]">【Wants (本質的な欲求)】</span>
+                                    <p class="text-stone-600">技術的な壁（塗り足しや規格）への恐怖を克服し、あおいとの表現共有と絆を実証したい。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- あおい -->
+                        <div class="bg-stone-50 p-4 rounded border border-stone-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center font-bold shrink-0">葵</div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-stone-900">あおい (Aoi)</h4>
+                                    <span class="text-[9px] text-stone-500">シナリオ・会計・進行</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-[11px] leading-relaxed">
+                                <div>
+                                    <span class="text-sky-700 font-bold block text-[10px]">【Needs (表面的な欲求)】</span>
+                                    <p class="text-stone-600">頭の中で思い描いている壮大なファンタジー小説を完璧な『本』という形に変えてこの世に残したい。</p>
+                                </div>
+                                <div class="border-t border-stone-200 pt-1.5">
+                                    <span class="text-sky-700 font-bold block text-[10px]">【Wants (本質的な欲求)】</span>
+                                    <p class="text-stone-600">他者に妄想を否定される不安を乗り越え、こむぎを心から信頼し共同制作を成功させたい。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ゆず -->
+                        <div class="bg-amber-50/50 p-4 rounded border border-amber-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold shrink-0">柚</div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-stone-900">ゆず (Yuzu)</h4>
+                                    <span class="text-[9px] text-amber-700 font-bold">アドバイザー・先輩</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-[11px] leading-relaxed">
+                                <div>
+                                    <span class="text-amber-700 font-bold block text-[10px]">【Needs (表面的な欲求)】</span>
+                                    <p class="text-stone-600">初挑戦でつまずきそうなこむぎとあおいが、ハザードで衝突するのを防ぎ、笑顔で完成させたい。</p>
+                                </div>
+                                <div class="border-t border-amber-200 pt-1.5">
+                                    <span class="text-amber-700 font-bold block text-[10px]">【Wants (本質的な欲求)】</span>
+                                    <p class="text-stone-600">自分の過去の印刷大失敗（RGBくすみ、奥付忘れ等）の傷を、二人の成功を支援することで克服したい。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white border border-stone-200 rounded text-xs text-stone-600 leading-relaxed font-serif">
+                        <span class="font-bold text-sky-700 block mb-1 text-[11px]">🎭 性格設計と行動論理の一貫性</span>
+                        こむぎは「感覚的で創造的」な反面、規格に挫折しやすい性格。あおいは「緻密で分析的」ですが、過保護すぎて創作ペースを崩すハザードを起こします。そこに、過去の失敗の知見を持つ「ゆず」が客観的アドバイザーとして介入することで、二人の衝突リスクを電子的に解決に導くナラティブトリガーが発動します。
+                    </div>
+                </div>
+
+                <!-- =================== TAB 5: シナリオ・タグ・フラグ設計 & Exportツール =================== -->
+                <div id="tab-script" class="flex-1 flex flex-col gap-4 hidden">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-sm font-bold text-sky-800 font-serif">シナリオ・タグ設計 & プレイヤー書き出し</h3>
+                            <p class="text-xs text-stone-500 mt-0.5">
+                                会話シナリオ配列、画像タグなどを制御します。ここで作ったカスタムシナリオを単体再生プレイヤーとして書き出せます。
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="syncScriptToGame()" class="px-3 py-1 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded transition flex items-center gap-1 shadow">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                テスト反映
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- エクスポートユーティリティツールバー -->
+                    <div class="bg-stone-50 p-3 rounded border border-stone-200 flex justify-between items-center gap-3">
+                        <div>
+                            <span class="text-[10px] text-sky-800 font-bold block font-serif">⚙️ EXPORT & STANDALONE ENGINE TOOL</span>
+                            <span class="text-[9px] text-stone-500">テキストエリアのJSONを元に、ブラウザで直接遊べる単体HTMLゲームを瞬時に生成します。</span>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <!-- JSONダウンロード -->
+                            <button onclick="downloadScenarioJSON()" class="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 text-[11px] font-bold rounded transition flex items-center gap-1 border border-stone-300">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                JSON保存
+                            </button>
+                            <!-- スタンドアロンHTML再生プレイヤー生成 -->
+                            <button onclick="exportStandalonePlayerHTML()" class="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white text-[11px] font-black rounded shadow transition flex items-center gap-1">
+                                <i data-lucide="file-code" class="w-3.5 h-3.5"></i>
+                                再生プレイヤーHTMLをエクスポート 🚀
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- タグ記法解説 -->
+                    <div class="bg-stone-50 p-3 rounded border border-stone-200 text-xs">
+                        <span class="font-bold text-sky-700 block mb-1">【シナリオScript記法仕様】</span>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] text-stone-500 font-mono">
+                            <div><code>[IMAGE: room.png]</code> <span class="text-stone-400">// 背景画像指定</span></div>
+                            <div><code>[FLAG_CHECK: format_level>=4]</code> <span class="text-stone-400">// 条件分岐判定</span></div>
+                            <div><code>[BG: purple]</code> <span class="text-stone-400">// 背景カラー指定</span></div>
+                            <div><code>[CHAR: komugi, EMOTION: happy]</code> <span class="text-stone-400">// 表情変化</span></div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 min-h-[220px] flex flex-col rounded border border-stone-200 overflow-hidden font-mono text-xs dynamic-console transition-colors duration-300">
+                        <div class="px-4 py-2 border-b border-stone-200 flex items-center justify-between text-[10px]">
+                            <span id="script-filename-badge">active_scenario_manifest.json</span>
+                            <span class="text-sky-700 font-bold">JSON COMPLIANT</span>
+                        </div>
+                        <textarea id="script-textarea" class="flex-1 bg-transparent p-4 outline-none resize-none font-mono leading-relaxed overflow-y-auto"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- システムログ / 常時監査モニタ -->
+            <div class="h-32 p-3 font-mono text-xs flex flex-col shrink-0 justify-between dynamic-console transition-colors duration-300">
+                <div class="flex items-center justify-between border-b border-stone-200 pb-1">
+                    <span class="flex items-center gap-1.5 font-bold text-[10px]">
+                        <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+                        PROJECT FLAG LOGS & COMPILER
+                    </span>
+                    <button onclick="clearConsoleLog()" class="opacity-60 hover:opacity-100 text-[9px]">CLEAR</button>
+                </div>
+                <div id="debug-log-list" class="flex-1 overflow-y-auto space-y-0.5 my-1 leading-tight text-[10px]"></div>
+                <div class="flex items-center justify-between text-[9px] opacity-70 border-t border-stone-200 pt-1">
+                    <span>NARRATIVE STATE: <span class="font-bold" id="narrative-seeds-badge">Active</span></span>
+                    <span>GOAL EVAL: <span id="active-flags-count" class="font-bold">READY</span></span>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // --- 専門用語辞書データ ---
+        const glossaryDatabase = {
+            format: {
+                title: "トンボ & 塗り足し",
+                desc: "仕上がり寸法より3mm外側まで描く領域。断裁時のズレで白余白が出るのを防ぐ同人誌作画の最重要ハザード。",
+                status: "未理解 🔒"
+            },
+            cost: {
+                title: "オンデマンド vs オフセット",
+                desc: "少部数なら初期費用が安いトナー方式の「オンデマンド印刷」、数百部以上ならインク方式の超高画質「オフセット印刷」がトントン基準。",
+                status: "未理解 🔒"
+            },
+            gutter: {
+                title: "ノド & 隠しノンブル",
+                desc: "本を綴じる側の余白（ノド）。漫画のコマや重要な台詞をノドに配置すると見えなくなるため、一定の余白設計が必要。",
+                status: "未理解 🔒"
+            },
+            colophon: {
+                title: "奥付 必須6項目",
+                desc: "責任元を明確にし紛争を回避するための法規措置。書名、発行日、著者、サークル、連絡先、印刷所名の表記が絶対ルール。",
+                status: "未理解 🔒"
+            },
+            cmyk: {
+                title: "RGB ➔ CMYK 変換",
+                desc: "画面表示の光(RGB)と、印刷物のインク(CMYK)では色域が異なる。事前に変換して色味がくすむハザードを回避する。",
+                status: "未理解 🔒"
+            },
+            pp: {
+                title: "PP加工 (ポリプロピレン加工)",
+                desc: "同人誌の表紙にラミネートフィルムを貼る加工。光沢のグロスPPや、しっとりしたマットPPがあり、高級感と保護性能を高める。",
+                status: "未理解 🔒"
+            }
+        };
+
+        // --- Magic ToDo：タスク解像度爆発データベース ---
+        const magicTodoDatabase = {
+            award: {
+                label: "目標：「漫画賞で新人賞を取る」",
+                levels: [
+                    {
+                        name: "通常レベル (Lv.1)",
+                        time: 20,
+                        panic: 1,
+                        pressure: 12,
+                        tasks: [
+                            { text: "作品のアイデアを考える", done: false },
+                            { text: "ストーリーの構成を練る", done: false },
+                            { text: "キャラクターの設定を行う", done: false },
+                            { text: "作品の下書き・ペン入れを描く", done: false },
+                            { text: "応募規定に沿って提出用の作品を準備する", done: false }
+                        ]
+                    },
+                    {
+                        name: "プロ設計レベル (Lv.2)",
+                        time: 150,
+                        panic: 3,
+                        pressure: 45,
+                        tasks: [
+                            { text: "作品のアイデアを考える（ジャンル分析、類似作排除）", done: false },
+                            { text: "ストーリーの構成を練る（起承転結、フックの設定）", done: false },
+                            { text: "キャラクターの性格、目的、外見、服装、小物を細かくデザインする", done: false },
+                            { text: "絵の基本的なデッサン技術を学び、さまざまな対象物や人物の観察練習を行う", done: false },
+                            { text: "模写や他の作家の作品を解析し、自分のスタイルに取り入れる", done: false },
+                            { text: "漫画の背景、効果線、ストーリーテリング力を高める特訓を行う", done: false },
+                            { text: "作品の下書きを描き、背景や詳細を追加しながらペン入れ・仕上げを行う", done: false },
+                            { text: "応募規定を確認し、必要書類やフォームを用意して締切までに提出する", done: false }
+                        ]
+                    },
+                    {
+                        name: "完全現実解像度【恐怖のバースト】 (Lv.3)",
+                        time: 1200,
+                        panic: 5,
+                        pressure: 98,
+                        tasks: [
+                            { text: "アイデア考案：プロット作成、競合賞の過向傾向分析、市場リサーチ", done: false },
+                            { text: "ストーリー構成：24P or 32Pのページ割りネーム、セリフ演出の推敲", done: false },
+                            { text: "キャラ設定：性格・背景、外見や特徴の描写、名前決定、目的や動機、役割関係性の定義", done: false },
+                            { text: "キャラ台詞や口調、服装や小物の詳細な3Dモデル・デザイン整合性確認", done: false },
+                            { text: "画力向上：毎日3時間のクロッキー、異なる画材・デジタルツールの模索、フィードバック収集", done: false },
+                            { text: "下書き作画、3D背景素材のトランス、パース定規を用いた緻密なパース背景追加", done: false },
+                            { text: "デジタルペン入れ（手ブレ補正、入り抜きの設定）、髪ツヤ・効果線の手作業描画", done: false },
+                            { text: "トーン貼り、彩色、グラデーションマスク、奥付および応募免責記述の配置", done: false },
+                            { text: "デジタルデータの書き出し（PSD、TIFF形式）、RGBからCMYKプロファイル埋込", done: false },
+                            { text: "動画コンテスト応募：動画形式サイズ、画像準備、アップロード確認、完了メール監視", done: false }
+                        ]
+                    }
+                ]
+            },
+            book: {
+                label: "目標：「初めての同人誌を印刷して頒布する」",
+                levels: [
+                    {
+                        name: "通常レベル (Lv.1)",
+                        time: 15,
+                        panic: 1,
+                        pressure: 10,
+                        tasks: [
+                            { text: "漫画・小説の原稿を書く", done: false },
+                            { text: "印刷所に頼んで本にしてもらう", done: false },
+                            { text: "イベント会場に申し込んで出店する", done: false },
+                            { text: "レジを用意してお会計をする", done: false }
+                        ]
+                    },
+                    {
+                        name: "プロ設計レベル (Lv.2)",
+                        time: 90,
+                        panic: 3,
+                        pressure: 50,
+                        tasks: [
+                            { text: "原稿作成（サイズ・トンボ設定、3mmの塗り足しを確認）", done: false },
+                            { text: "予算を計算し、オンデマンド印刷の費用を見積もる（ページ数調整）", done: false },
+                            { text: "巻末に必須の奥付6項目（タイトル、発行日、印刷所など）を正しく配置", done: false },
+                            { text: "全年齢規定と二次創作免責文が記述できているか自己検閲を行う", done: false },
+                            { text: "イベント参加手続きと搬入指示書の記述、サークルスペースの設営設計", done: false }
+                        ]
+                    },
+                    {
+                        name: "完全現実解像度【恐怖のバースト】 (Lv.3)",
+                        time: 850,
+                        panic: 5,
+                        pressure: 95,
+                        tasks: [
+                            { text: "原稿：サイズ、トンボ、3mm塗り足し、RGB➔CMYK色域ズレ防止、ノド・隠しノンブルの配置", done: false },
+                            { text: "予算：部数50部のオンデマンド最適見積調整、表紙の特殊PP加工、背幅計算と背表紙デザイン", done: false },
+                            { text: "法務：奥付6項目の整合確認（連絡先メール・SNS、印刷所名の裏取り、日付統一）", done: false },
+                            { text: "二次創作ガイドライン抵触監査、公式ロゴの絶対不使用、表現のモザイク等合規審査", done: false },
+                            { text: "印刷所入稿：PSDデータエラー、レイヤー統合忘れ、解像度350/600dpiチェックとデータ再転送", done: false },
+                            { text: "普及後ハザード：国会図書館への納本義務（100部以上普及時の手続）、文化庁への手続き認知", done: false },
+                            { text: "税務ハザード：同人サークルの雑所得年間20万円超の帳簿・領収書管理、所得確定申告準備", done: false }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // --- 多言語ローカライズ対応リソース ---
+        const localizations = {
+            ja: {
+                "reset-btn": "最初からやり直す",
+                "sim-title": "同人誌製作体験シミュレーター",
+                "sim-sub": "「中学生、はじめて本を作る」",
+                "sub-write-desc": "中学生女子2人のサークル「まじかるベーカリー」。初めての合同誌製作に大苦戦！机に散らばる「問題」をクリックして認知レベルを上げ、執筆を成功させましょう。",
+                "node-format-title": "原稿サイズと塗り足し",
+                "node-format-text": "「塗り足しって何だろう？適当に描いちゃダメかな…」",
+                "node-cost-title": "印刷費用の予算計画",
+                "node-cost-text": "「印刷所ってたくさんあって、いくらかかるか見当もつかない…」",
+                "knowledge-gained": "現在の獲得知見",
+                "goto-colophon": "奥付の設計へ",
+                "colophon-title": "法務と連絡の要件：奥付に必須の6項目を配置せよ",
+                "colophon-desc": "同人誌の最終ページ付近には、トラブル防止と法務のため「必須6項目」の記載が必要です。右側の解説を参考に、正しい項目をチェックして奥付原稿を完成させましょう。",
+                "goto-review": "イベント主催検閲へ",
+                "review-title": "イベント主催者による適合性レビュー（検閲）",
+                "review-desc": "同人即売会では、主催者や見回りスタッフによって「表現規約」「全年齢対象の適合度」が監査されます。中学生サークルのため「全年齢」区分の書籍となります。自己監査をパスしてください。",
+                "legal-title": "大ヒットの末に…国会図書館納本義務と納税義務",
+                "legal-desc": "本が大量に売れたり利益が出た場合、同人活動であっても「法的な義務」が発生します。適切な選択を行いましょう。",
+                "next-dialogue": "読み進める",
+                "flow-title": "心理フローバランス (心理集中度)",
+                "flow-desc": "情報難度とスキル適性から動的に算出"
+            },
+            zh: {
+                "reset-btn": "重新开始",
+                "sim-title": "同人志制作体验模拟器",
+                "sim-sub": "“初中女生的第一次出书挑战”",
+                "sub-write-desc": "两位初中女生组成的社团“魔法面包房”。第一次制作合作同人志面临巨大挑战！点击桌上的“难题”提高认知等级，从而顺利完成创作。",
+                "node-format-title": "原稿尺寸与出血线",
+                "node-format-text": "“出血线是什么呀？随便画画尺寸不行吗……”",
+                "node-cost-title": "印刷费用预算规划",
+                "node-cost-text": "“印刷厂有那么多家，完全不知道要花多少钱……”",
+                "knowledge-gained": "当前习得的认知",
+                "goto-colophon": "设计版权页(奥付)",
+                "colophon-title": "法律与联络规范：请配置奥付必备的6大要素",
+                "colophon-desc": "同人志的最后一页必须写明“必备6要素”以防止法律纠纷 and 保障联络。参考右侧的说明，勾选正确的项目以完成奥付设计。",
+                "goto-review": "前往主办方审核",
+                "review-title": "活动主办方合规审查（审查）",
+                "review-desc": "在同人展会中，主办方 and 巡查人员会对“表达规范” and “全年龄适合度”进行审核。作为一个初中生社团，所出书籍必须属于“全年齢”级别。请通过自我审查。",
+                "legal-title": "畅销之后……国会图书馆呈缴义务与纳税义务",
+                "legal-desc": "当书大量售出或者产生利润时，即使是同人活动也会产生“法律义务”。请做出正确的选择。",
+                "next-dialogue": "继续阅读",
+                "flow-title": "心理流体験平衡 (集中度)",
+                "flow-desc": "根据信息难度和技能自适应计算"
+            }
+        };
+
+        // --- 共通＆個別プロジェクトのナラティブ・データベース ---
+        const gameDatabase = {
+            doujin: {
+                title: "中学生、はじめて本を作る",
+                speaker: "こむぎ (Komugi)",
+                phase: 'beginning',
+                subPhase: 'write', 
+                flow: 35,
+                // デフォルトテーマ
+                customTheme: {
+                    primary: "#0284c7",
+                    panelBg: "#ffffff",
+                    consoleBg: "#e0f2fe",
+                    border: "#7dd3fc"
+                },
+                evidence: {
+                    format: {
+                        id: 'format',
+                        level: 0,
+                        name: '原稿サイズと塗り足し (Format/Bleed)',
+                        details: [
+                            '「塗り足しって何だろう？適当なサイズでキャンバスを作っちゃダメかな…」',
+                            'あおいが「トンボは本を綺麗に切りそろえる目印だよ」とネットで調べて教えてくれた！',
+                            'さらに調べると「塗り足し」という概念を発見。仕上がり線より3mm外側まで描く必要がある。',
+                            '「もし塗り足しがないと、印刷のカットがずれた時に端に白い余白ができちゃうんだ！」と納得。',
+                            '【仮説検証】3mmの塗り足しを全てのイラストキャンバスに設定し、こむぎが端まで作画を施した！'
+                        ],
+                        detailsZh: [
+                            '“出血线是什么呀？随便画画尺寸不行吗……”',
+                            '葵在网上查到：“裁切线是让印刷本边缘切整齐的标记哦！”',
+                            '进一步查到了“出血线”的概念。作画需要比成品边缘往外多画3mm。',
+                            '“如果没有出血线的话，印刷裁剪稍微偏差一点就会露出难看的白边！”小麦恍然大悟。',
+                            '【假设验证】在所有的插画画布上设置了3mm of 出血线，小麦成功完成了边缘部分的作画！'
+                        ]
+                    },
+                    cost: {
+                        id: 'cost',
+                        level: 0,
+                        name: '印刷方式とコスト予算 (Printing Cost)',
+                        details: [
+                            '「同人誌って1冊いくらで刷れるの？お小遣い3万円で足りるかな…」',
+                            '「オンデマンド印刷」は少部数向き、「オフセット印刷」は大量印刷向きだと知る。',
+                            '中学生の部数(50部前後)なら、初期費用が安いオンデマンド一択だと判明！',
+                            '印刷所の見積計算機を使い、ページ数と部数をコントロールすれば予算内に収まると仮定する。',
+                            '【仮説検証】ページ数を24Pに抑え、オンデマンド50部で予算13,200円(1冊原価264円)に収めた！'
+                        ],
+                        detailsZh: [
+                            '“印一本书要多少钱啊？零花钱3万日元够用吗……”',
+                            '了解到了“数码印刷”适合少量印刷，“胶印”适合大批量印刷。',
+                            '明白如果只印初中生規模の冊数（50冊左右），初期費用更低い数码印刷是唯一選択！',
+                            '假设只要合理控制頁数 and 印量，使用印刷所の估価工具就能把費用控制在予算内。',
+                            '【假设验证】将総頁数を24頁に、数码印刷50冊、成功将予算を13,200円以内（毎本コスト264円）に収めた！'
+                        ]
+                    }
+                },
+                script: [
+                    {
+                        speaker: "こむぎ (Komugi)",
+                        text: "えへへ、あおいちゃん！私たちでオリジナルの同人誌、作ってみない！？ [IMAGE: s_room.jpg] [CHAR: komugi, EMOTION: happy]"
+                    },
+                    {
+                        speaker: "あおい (Aoi)",
+                        text: "いいね！私の書いてたファンタジー小説、こむぎちゃんの絵で漫画にして本にしたい！ [CHAR: aoi, EMOTION: positive]"
+                    },
+                    {
+                        speaker: "ゆず (Advisor)",
+                        text: "同人誌を印刷してイベントで配るには、色々な「決まり事」や「ハザード」があるの。しっかり学んでクリアしよう！ [FLAG_CHECK: active_phase==write]"
+                    }
+                ],
+                scriptZh: [
+                    {
+                        speaker: "小麦 (Komugi)",
+                        text: "嘿嘿，葵酱！我们一起来制作属于我们自己的原创同人志吧！？ [IMAGE: s_room.jpg] [CHAR: komugi, EMOTION: happy]"
+                    },
+                    {
+                        speaker: "葵 (Aoi)",
+                        text: "好呀！我之前写的幻想小说，好想用小麦画的漫画呈现并印成书呢！ [CHAR: aoi, EMOTION: positive]"
+                    },
+                    {
+                        speaker: "柚子 (顾问)",
+                        text: "要把同人志印出来并去活动上贩卖，会遇到很多“规则”和“风险”哦。我们要好好学习并逐一克服！ [FLAG_CHECK: active_phase==write]"
+                    }
+                ]
+            },
+            judge: {
+                title: "マナーハウス書斎・深夜の銃声事件",
+                speaker: "大判事ハミルトン",
+                phase: 'investigation',
+                flow: 40,
+                // デフォルトテーマ (木目・真鍮クラシック)
+                customTheme: {
+                    primary: "#c5a880",
+                    panelBg: "#241a12",
+                    consoleBg: "#0f0b07",
+                    border: "#4a3525"
+                },
+                evidence: {
+                    watch: {
+                        id: 'watch',
+                        level: 0,
+                        name: '煤けた金の懐中時計',
+                        details: [
+                            '机に転がっている何か。まだ手にとっていない。',
+                            '手に取ってみた。煤まみれの古い高級な金の懐中時計だ。',
+                            '蓋が開かない。中の歯車が引っかかっているようで無理に回すと壊れそうだ。',
+                            '文字盤を磨いてみると、蓋の裏に小さな焦げ跡があり、針は「11時15分」で完全に止まっている。',
+                            '【仮説】事件の銃声があったとされるのは11時。この時計は11時15分の大きな衝撃で止まった。'
+                        ],
+                        detailsZh: [
+                            '桌上落着的某样东西。还没拿起来。',
+                            '拿起来看了看。是一块满是煤灰的古老高级金怀表。',
+                            '表盖打不开。里面的齿轮手記 perhaps 卡住了，用力旋转可能会弄坏。',
+                            '擦拭表盘后，发现盖子内侧有細小の焦黒痕跡、指针完全停在“11点15分”。',
+                            '【假设】据称事件枪声发生在11点。这块表是因11点15分の劇烈衝突而停擺的。'
+                        ]
+                    },
+                    key: {
+                        id: 'key',
+                        level: 0,
+                        name: '泥のついた温室の鍵',
+                        details: [
+                            '暖炉の脇に落ちている金属。煤にまみれている。',
+                            '拾い上げた。真鍮製の鍵で、何か土のような黒い塊がこびりついている。',
+                            'こびりついた土をよく調べると、この屋敷の温室の周辺のみに存在する特殊な赤粘土が混じっている。',
+                            '裏手の温室に行って鍵を挿し込んでみる。ピタリと合い、中にはランの鉢植えが乱雑に置かれている。',
+                            '【仮説】鍵に付着した泥は昨夜の激しい雨で流出したはずの「書斎の窓の外の泥」と成分が一致する。'
+                        ],
+                        detailsZh: [
+                            '掉在壁炉旁的金属。落满煤灰。',
+                            '捡了起来。是一把黄铜钥匙，上面粘着一些像泥土一样的黑色块状物。',
+                            '仔细调查粘着的泥土，发现里面混有仅在该宅邸温室周围才有的特殊红粘土。',
+                            '前往后面的温室试着插进钥匙。完全吻合，里面雑乱地擺放着兰花盆栽。',
+                            '【假设】钥匙上附着的泥土，与昨晚因暴雨流失の“书房窗外的泥土”成分完全一致。'
+                        ]
+                    }
+                },
+                script: [
+                    {
+                        speaker: "大判事ハミルトン",
+                        text: "物的な証拠と行動の足跡のみが、虚飾に塗れた供述を引き裂く。まずは机の周辺に散らばる不穏な情報を一つ一つめくりなさい。 [IMAGE: court.jpg]"
+                    }
+                ],
+                scriptZh: [
+                    {
+                        speaker: "大判官 汉密尔顿",
+                        text: "唯有物证与行动轨迹，能撕碎被虚饰粉刷的供词。首先，把散落在书桌周围的不祥线索逐一查清吧。 [IMAGE: court.jpg]"
+                    }
+                ]
+            }
+        };
+
+        // タスク細分化の進捗状態
+        let todoDecompositionState = {
+            target: "award",
+            currentLevelIndex: 0 // 0~2
+        };
+
+        let appState = {
+            activeProject: 'doujin',
+            currentScriptIndex: 0,
+            language: 'ja',
+            theme: 'lightblue' // デフォルトはライトブルー
+        };
+
+        window.onload = function() {
+            lucide.createIcons();
+            initAmbientCanvas();
+            applyPresetTheme('lightblue'); // デフォルトライトブルー適用
+            loadProject(appState.activeProject);
+            writeLog("[SYSTEM] Multi-language Narrative Flag Engine Suite V5 successfully initialized.", 'system');
+        };
+
+        // --- カラーテーマ動的変更メカニズム ---
+        function applyCustomThemeColor(hex) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return;
+            
+            // カラースキーム変数をリアルタイム再マッピング
+            document.documentElement.style.setProperty('--primary-theme', hex);
+            document.documentElement.style.setProperty('--primary-light', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`);
+            document.documentElement.style.setProperty('--primary-border', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`);
+            
+            // ライトブルー調に寄せるか、ダーク調にするか
+            const isDark = (rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114) < 120;
+            if (isDark) {
+                document.documentElement.style.setProperty('--bg-theme-main', '#1e293b');
+                document.documentElement.style.setProperty('--bg-theme-panel', '#0f172a');
+                document.documentElement.style.setProperty('--bg-theme-console', '#1e293b');
+                document.documentElement.style.setProperty('--text-theme-main', '#f8fafc');
+                document.documentElement.style.setProperty('--text-theme-muted', '#cbd5e1');
+                document.documentElement.style.setProperty('--text-theme-bright', '#38bdf8');
+            } else {
+                document.documentElement.style.setProperty('--bg-theme-main', '#f8fafc');
+                document.documentElement.style.setProperty('--bg-theme-panel', '#ffffff');
+                document.documentElement.style.setProperty('--bg-theme-console', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.08)`);
+                document.documentElement.style.setProperty('--text-theme-main', '#1e293b');
+                document.documentElement.style.setProperty('--text-theme-muted', '#64748b');
+                document.documentElement.style.setProperty('--text-theme-bright', hex);
+            }
+            
+            // 変更情報をプロジェクトにセーブ
+            gameDatabase[appState.activeProject].customTheme.primary = hex;
+            writeLog(`[THEME-COLOR] Real-time theme primary color modified to ${hex}`, 'success');
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // プリセット切替
+        function applyPresetTheme(preset) {
+            appState.theme = preset;
+            const picker = document.getElementById('theme-color-picker');
+
+            if (preset === 'lightblue') {
+                picker.value = "#0284c7";
+                applyCustomThemeColor("#0284c7");
+            } else if (preset === 'lightyellow') {
+                picker.value = "#eab308";
+                applyCustomThemeColor("#eab308");
+            } else if (preset === 'pastel') {
+                picker.value = "#d946ef";
+                applyCustomThemeColor("#d946ef");
+            } else if (preset === 'classic') {
+                picker.value = "#854d0e";
+                applyCustomThemeColor("#854d0e");
+            }
+        }
+
+        function setLanguage(lang) {
+            appState.language = lang;
+            document.getElementById('lang-btn-ja').className = lang === 'ja' 
+                ? "px-2 py-1 text-[10px] font-bold rounded bg-sky-600 text-white transition"
+                : "px-2 py-1 text-[10px] font-bold rounded text-stone-500 hover:text-stone-800 transition";
+            document.getElementById('lang-btn-zh').className = lang === 'zh' 
+                ? "px-2 py-1 text-[10px] font-bold rounded bg-sky-600 text-white transition"
+                : "px-2 py-1 text-[10px] font-bold rounded text-stone-500 hover:text-stone-800 transition";
+            
+            // UIテキスト更新
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (localizations[lang][key]) {
+                    el.innerText = localizations[lang][key];
+                }
+            });
+
+            loadProject(appState.activeProject);
+            writeLog(`[SYSTEM] Language switched to: [${lang.toUpperCase()}]`);
+        }
+
+        function loadProject(projectId) {
+            appState.activeProject = projectId;
+            appState.currentScriptIndex = 0;
+            const project = gameDatabase[projectId];
+
+            // 登録済みカラーテーマ色をカラーピッカーに逆セットしてロード
+            if (project.customTheme && project.customTheme.primary) {
+                document.getElementById('theme-color-picker').value = project.customTheme.primary;
+                applyCustomThemeColor(project.customTheme.primary);
+            }
+
+            document.getElementById('project-selector').value = projectId;
+
+            if (projectId === 'doujin') {
+                document.getElementById('header-icon').setAttribute('data-lucide', 'book-open');
+                document.getElementById('game-scope-label').innerText = "Doujinshi Workspace";
+                document.getElementById('game-phase-badge').innerText = "サークル結成 (BEGINNING)";
+                document.getElementById('step-tabs').classList.remove('hidden');
+                
+                document.getElementById('doujin-game-ui').classList.remove('hidden');
+                document.getElementById('judge-game-ui').classList.add('hidden');
+                switchDoujinSubPhase('write');
+            } else {
+                document.getElementById('header-icon').setAttribute('data-lucide', 'scale');
+                document.getElementById('game-scope-label').innerText = "Judicial Room";
+                document.getElementById('game-phase-badge').innerText = "書斎捜査 (SEARCH)";
+                document.getElementById('step-tabs').classList.add('hidden');
+
+                document.getElementById('doujin-game-ui').classList.add('hidden');
+                document.getElementById('judge-game-ui').classList.remove('hidden');
+                document.getElementById('investigation-phase-ui').classList.remove('hidden');
+                document.getElementById('trial-phase-ui').classList.add('hidden');
+            }
+
+            document.getElementById('victory-phase-ui').classList.add('hidden');
+            
+            initNarrativeTrackerUI();
+            initGlossaryDictionaryUI();
+            initMagicTodoUI();
+            syncProjectToScriptEditor();
+            renderDialogue();
+            updateFlowUI();
+            lucide.createIcons();
+        }
+
+        function changeActiveProject(val) {
+            loadProject(val);
+        }
+
+        function initAmbientCanvas() {
+            const canvas = document.getElementById('court-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            function resize() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const particles = [];
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    density: Math.random() * 20,
+                    alpha: Math.random() * 0.4 + 0.1
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(2, 132, 199, ${p.alpha})`;
+                    ctx.fill();
+                    p.y -= 0.1;
+                    p.x += Math.sin(p.density) * 0.05;
+                    p.density += 0.01;
+                    if (p.y < 0) {
+                        p.y = canvas.height;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+            }
+            setInterval(draw, 50);
+        }
+
+        function initNarrativeTrackerUI() {
+            const container = document.getElementById('dev-narrative-container');
+            container.innerHTML = '';
+            const project = gameDatabase[appState.activeProject];
+
+            Object.values(project.evidence).forEach(item => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "bg-stone-50 border border-stone-200 rounded p-3 shadow-sm";
+                
+                const steps = ["知らない", "知る", "探求", "推論", "仮説検証"];
+                let stepsHtml = '';
+                
+                steps.forEach((stepName, i) => {
+                    const isActive = item.level === i;
+                    const stepClass = isActive 
+                        ? "p-1 rounded bg-sky-600 text-white font-bold border border-sky-400"
+                        : "p-1 rounded bg-stone-100 text-stone-400";
+                    stepsHtml += `<div id="step-${item.id}-${i}" class="${stepClass} text-[9px] text-center">${i + 1}. ${stepName}</div>`;
+                });
+
+                wrapper.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-stone-800 flex items-center gap-1 font-serif">
+                            <i data-lucide="bookmark" class="w-3.5 h-3.5 text-sky-600"></i>
+                            ${item.name}
+                        </span>
+                        <span id="narrative-badge-${item.id}" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-stone-200 text-sky-800">
+                            ${steps[item.level].toUpperCase()}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1">
+                        ${stepsHtml}
+                    </div>
+                `;
+                container.appendChild(wrapper);
+            });
+            lucide.createIcons();
+        }
+
+        function updateDevNarrativeMap(evidenceId, prevLevel, currentLevel) {
+            const prevEl = document.getElementById(`step-${evidenceId}-${prevLevel}`);
+            if (prevEl) {
+                prevEl.className = "p-1 rounded bg-stone-100 text-stone-400 text-[9px] text-center";
+            }
+            const curEl = document.getElementById(`step-${evidenceId}-${currentLevel}`);
+            if (curEl) {
+                curEl.className = "p-1 rounded bg-sky-600 text-white font-bold border border-sky-400 text-[9px] text-center";
+            }
+            const badge = document.getElementById(`narrative-badge-${evidenceId}`);
+            if (badge) {
+                const steps = ["UNKNOWN", "KNOWN", "INQUIRY", "HYPOTHESIS", "EVIDENCE"];
+                badge.innerText = steps[currentLevel];
+            }
+        }
+
+        // --- 専門用語辞書レンダラー ---
+        function initGlossaryDictionaryUI() {
+            const container = document.getElementById('glossary-items-container');
+            container.innerHTML = '';
+            
+            // 認知レベルに合わせてリアルタイムに辞書ステータスを連動
+            const project = gameDatabase.doujin;
+            if (project.evidence.format.level >= 4) {
+                glossaryDatabase.format.status = "理解済 ✨";
+                glossaryDatabase.gutter.status = "理解済 ✨";
+            } else if (project.evidence.format.level >= 2) {
+                glossaryDatabase.format.status = "探求中 🔍";
+            } else {
+                glossaryDatabase.format.status = "未理解 🔒";
+                glossaryDatabase.gutter.status = "未理解 🔒";
+            }
+
+            if (project.evidence.cost.level >= 4) {
+                glossaryDatabase.cost.status = "理解済 ✨";
+                glossaryDatabase.cmyk.status = "理解済 ✨";
+                glossaryDatabase.pp.status = "理解済 ✨";
+            } else if (project.evidence.cost.level >= 2) {
+                glossaryDatabase.cost.status = "探求中 🔍";
+            } else {
+                glossaryDatabase.cost.status = "未理解 🔒";
+                glossaryDatabase.cmyk.status = "未理解 🔒";
+                glossaryDatabase.pp.status = "未理解 🔒";
+            }
+
+            if (project.subPhase === 'colophon' || project.subPhase === 'review' || project.subPhase === 'legal') {
+                glossaryDatabase.colophon.status = "理解済 ✨";
+            } else {
+                glossaryDatabase.colophon.status = "未理解 🔒";
+            }
+
+            let unlockedCount = 0;
+            Object.entries(glossaryDatabase).forEach(([key, item]) => {
+                const isUnlocked = item.status === "理解済 ✨";
+                if (isUnlocked) unlockedCount++;
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded border transition-all duration-300 shadow-sm ${
+                    isUnlocked 
+                        ? 'bg-sky-50/50 border-sky-300' 
+                        : 'bg-stone-50 border-stone-200 opacity-65'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-bold font-serif ${isUnlocked ? 'text-sky-800' : 'text-stone-500'}">
+                            ${item.title}
+                        </span>
+                        <span class="text-[9px] px-1 rounded font-bold font-mono ${
+                            isUnlocked ? 'bg-sky-100 text-sky-800' : 'bg-stone-200 text-stone-500'
+                        }">
+                            ${item.status}
+                        </span>
+                    </div>
+                    <p class="text-[10px] ${isUnlocked ? 'text-stone-700' : 'text-stone-400'} leading-relaxed font-serif">
+                        ${isUnlocked ? item.desc : "対応する認知フラグ（原稿や予算）レベルを高めることでアンロックされます。"}
+                    </p>
+                `;
+                container.appendChild(card);
+            });
+
+            const unlockRate = Math.round((unlockedCount / Object.keys(glossaryDatabase).length) * 100);
+            document.getElementById('dictionary-unlock-rate').innerText = `獲得率: ${unlockRate}%`;
+        }
+
+        // --- Magic ToDo & Task Avalanche システム ---
+        function initMagicTodoUI() {
+            const target = todoDecompositionState.target;
+            const db = magicTodoDatabase[target];
+            const currentLevel = db.levels[todoDecompositionState.currentLevelIndex];
+
+            // メーター群アップデート
+            document.getElementById('todo-resolution-level').innerText = currentLevel.name;
+            document.getElementById('todo-total-time').innerText = `${currentLevel.time} 時間`;
+
+            // 精神的負荷炎の表示
+            const fireContainer = document.getElementById('todo-panic-fire');
+            fireContainer.innerHTML = '';
+            for (let i = 0; i < currentLevel.panic; i++) {
+                const flame = document.createElement('i');
+                flame.setAttribute('data-lucide', 'flame');
+                flame.className = `w-4 h-4 text-red-500 ${currentLevel.panic >= 5 ? 'animate-shake' : ''}`;
+                fireContainer.appendChild(flame);
+            }
+
+            // 進行度バー
+            document.getElementById('task-pressure-percent').innerText = `${currentLevel.pressure}%`;
+            document.getElementById('task-pressure-bar').style.width = `${currentLevel.pressure}%`;
+
+            // ツリー構築
+            const treeContainer = document.getElementById('todo-tree-container');
+            treeContainer.innerHTML = '';
+            document.getElementById('decomposed-tasks-count').innerText = `${currentLevel.tasks.length}個のタスク`;
+
+            currentLevel.tasks.forEach((task, index) => {
+                const item = document.createElement('div');
+                item.className = "flex items-start gap-2 p-1.5 hover:bg-stone-50 rounded transition";
+                
+                // 階層があるか（タスク解像度が高まるとインデントやインジケータを追加）
+                const isSubTask = task.text.includes('：') || task.text.includes('（');
+                const paddingClass = isSubTask ? "pl-4 text-stone-600 border-l border-sky-200 ml-1" : "font-bold text-stone-800";
+
+                item.innerHTML = `
+                    <input type="checkbox" id="todo-task-${index}" class="w-3.5 h-3.5 rounded text-sky-600 accent-sky-600 mt-0.5 shrink-0" ${task.done ? 'checked' : ''}>
+                    <span class="${paddingClass} leading-relaxed text-[11px]">${task.text}</span>
+                `;
+                treeContainer.appendChild(item);
+            });
+
+            lucide.createIcons();
+        }
+
+        function triggerMagicDecomposition() {
+            const target = document.getElementById('todo-target-picker').value;
+            todoDecompositionState.target = target;
+
+            if (todoDecompositionState.currentLevelIndex < 2) {
+                todoDecompositionState.currentLevelIndex++;
+                writeLog(`[MAGIC-TODO] Resolution expanded dynamically. Subtasks generated with AI.`, 'system');
+                showToast("Magic ToDo: タスクの解像度を爆発的に細分化しました！");
+            } else {
+                todoDecompositionState.currentLevelIndex = 0;
+                writeLog(`[MAGIC-TODO] Tasks consolidated.`, 'info');
+                showToast("あまりの膨大さにプレイヤーが現実逃避しました。タスクを畳みます。");
+            }
+
+            // 心理フローへのフィードバック（恐怖・不安）
+            const project = gameDatabase[appState.activeProject];
+            if (todoDecompositionState.currentLevelIndex === 2) {
+                project.flow = Math.min(95, project.flow + 35); // 不安へ急激にシフト
+                writeLog("[FLOW-ALERT] Total estimated working time exploded! Anxiety level peaked.", "warning");
+                document.getElementById('alert-badge-todo').classList.add('hidden');
+            } else {
+                project.flow = Math.max(30, project.flow - 20);
+                document.getElementById('alert-badge-todo').classList.remove('hidden');
+            }
+
+            initMagicTodoUI();
+            updateFlowUI();
+        }
+
+
+        // =================== PROJECT DOUJIN: GAME LOGIC ===================
+        function switchDoujinSubPhase(sub) {
+            const project = gameDatabase.doujin;
+            project.subPhase = sub;
+
+            const subs = ['write', 'colophon', 'review', 'legal'];
+            subs.forEach(s => {
+                const btn = document.getElementById(`step-btn-${s}`);
+                if (s === sub) {
+                    btn.className = "px-2 py-1 rounded font-bold text-sky-700 bg-white shadow-sm border border-stone-200";
+                    document.getElementById(`doujin-sub-${s}`).classList.remove('hidden');
+                } else {
+                    btn.className = "px-2 py-1 rounded font-bold text-stone-500 bg-transparent border-0";
+                    document.getElementById(`doujin-sub-${s}`).classList.add('hidden');
+                }
+            });
+
+            const phaseBadge = document.getElementById('game-phase-badge');
+            if (sub === 'write') {
+                phaseBadge.innerText = "原稿＆仕様 (WRITING)";
+                project.flow = 35;
+            } else if (sub === 'colophon') {
+                phaseBadge.innerText = "奥付の設計 (COLOPHON)";
+                project.flow = 55;
+                checkColophonProgress();
+            } else if (sub === 'review') {
+                phaseBadge.innerText = "主催者適合審査 (COMPLIANCE)";
+                project.flow = 70;
+                evaluateReview();
+            } else {
+                phaseBadge.innerText = "納本・税務 (LEGAL & TAX)";
+                project.flow = 80;
+                evaluateLegal();
+            }
+            updateFlowUI();
+            initGlossaryDictionaryUI();
+            writeLog(`[PHASE] Switched subphase to: [${sub.toUpperCase()}]`);
+        }
+
+        function advanceDoujinState(id) {
+            const project = gameDatabase.doujin;
+            const item = project.evidence[id];
+            if (!item) return;
+
+            if (item.level >= 4) {
+                showToast("これ以上の理解は最大です。奥付設計へ進んでください。");
+                return;
+            }
+
+            const prevLevel = item.level;
+            item.level++;
+
+            const steps = ["知らない", "知る", "探求", "推論", "仮説検証"];
+            const currentStepName = steps[item.level];
+
+            document.getElementById(`level-${id}`).innerText = item.level;
+            const badge = document.getElementById(`badge-${id}`);
+            badge.innerText = currentStepName;
+            badge.className = `text-[9px] px-1.5 rounded font-serif ${item.level === 4 ? 'bg-sky-600 text-white font-bold' : 'bg-stone-200 text-stone-600'}`;
+            
+            const detailText = appState.language === 'ja' ? item.details[item.level] : item.detailsZh[item.level];
+            document.getElementById(`text-${id}`).innerText = detailText;
+
+            updateDevNarrativeMap(id, prevLevel, item.level);
+            project.flow = Math.min(65, project.flow + 10);
+            updateFlowUI();
+
+            writeLog(`[FLAG-UPDATE] "${item.name}" updated to [${currentStepName}]`, 'success');
+            showToast(`認知フラグ更新: 「${item.name}」を [${currentStepName}] へ。`);
+
+            checkDoujinPrintReady();
+            updateDoujinHypothesisChips();
+            initGlossaryDictionaryUI(); // 辞書獲得状況も同時アップデート
+        }
+
+        function checkDoujinPrintReady() {
+            const project = gameDatabase.doujin;
+            const isReady = Object.values(project.evidence).every(item => item.level >= 4);
+            const btn = document.getElementById('btn-goto-colophon');
+            if (isReady) {
+                btn.removeAttribute('disabled');
+                btn.className = "px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded shadow-lg animate-pulse transition";
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btn.className = "px-3 py-2 bg-stone-300 text-stone-500 text-xs font-bold rounded shadow transition disabled:opacity-40 disabled:cursor-not-allowed";
+            }
+        }
+
+        function updateDoujinHypothesisChips() {
+            const container = document.getElementById('doujin-hypothesis-container');
+            container.innerHTML = '';
+            const project = gameDatabase.doujin;
+            let count = 0;
+            Object.values(project.evidence).forEach(item => {
+                if (item.level >= 4) {
+                    count++;
+                    const chip = document.createElement('span');
+                    chip.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-600 text-white border border-sky-400";
+                    chip.innerText = appState.language === 'ja' ? `了解: ${item.name.split(' ')[0]}` : `已知: ${item.name.split(' ')[0]}`;
+                    container.appendChild(chip);
+                }
+            });
+            if (count === 0) {
+                container.innerHTML = '<span class="text-[10px] text-stone-500 italic">まだ十分に理解できていない情報があります。</span>';
+            }
+        }
+
+        function checkColophonProgress() {
+            const opt1 = document.getElementById('colo-opt-1').checked; 
+            const opt2 = document.getElementById('colo-opt-2').checked; 
+            const opt3 = document.getElementById('colo-opt-3').checked; 
+            const opt4 = document.getElementById('colo-opt-4').checked; 
+            const opt5 = document.getElementById('colo-opt-5').checked; 
+            const opt6 = document.getElementById('colo-opt-6').checked; 
+            const optFan = document.getElementById('colo-opt-fan').checked; 
+
+            const all6Selected = opt1 && opt2 && opt3 && opt4 && opt5 && opt6;
+            const statusText = document.getElementById('colophon-completion-status');
+            const btn = document.getElementById('btn-goto-review');
+
+            if (all6Selected && optFan) {
+                statusText.innerText = "適合：すべての必須奥付項目と免責文が揃いました！";
+                statusText.className = "text-[11px] text-emerald-600 font-bold";
+                btn.removeAttribute('disabled');
+            } else {
+                let missing = [];
+                if (!all6Selected) missing.push("必須6項目");
+                if (!optFan) missing.push("二次創作免責文");
+                statusText.innerText = `不備：${missing.join('と')}が不足しています。`;
+                statusText.className = "text-[11px] text-red-600 font-bold";
+                btn.setAttribute('disabled', 'true');
+            }
+        }
+
+        function evaluateReview() {
+            const r18 = document.getElementById('review-opt-r18').value;
+            const trace = document.getElementById('review-opt-trace').value;
+            const statusText = document.getElementById('review-status-text');
+            const btn = document.getElementById('btn-goto-legal');
+
+            if (r18 === 'valid' && trace === 'valid') {
+                statusText.innerText = "適合：健全な全年齢適合書籍として主催許可が下りました！";
+                statusText.className = "text-[11px] text-emerald-400 font-bold";
+                btn.removeAttribute('disabled');
+            } else {
+                statusText.innerText = "不適合：公式権利侵害、または表現規定（成年向け）に違反しています。";
+                statusText.className = "text-[11px] text-red-400 font-bold";
+                btn.setAttribute('disabled', 'true');
+            }
+        }
+
+        let evaluationScore = {
+            profit: 0,
+            hasDeposit: false,
+            hasTax: false
+        };
+
+        function runSubmission() {
+            writeLog("[EVENT-MARKET] Congratulations! The book was compiled, printed, and put on sale in the marketplace.", 'success');
+            showToast("おめでとうございます！印刷所に入稿し、イベントで完売！");
+            
+            switchDoujinSubPhase('legal');
+        }
+
+        function evaluateLegal() {
+            const deposit = document.getElementById('legal-opt-deposit').value;
+            const tax = document.getElementById('legal-opt-tax').value;
+            
+            evaluationScore.hasDeposit = (deposit === 'deposit');
+            evaluationScore.hasTax = (tax === 'declare');
+        }
+
+        function runFinalEvaluation() {
+            const project = gameDatabase.doujin;
+            project.phase = 'victory';
+
+            document.getElementById('doujin-game-ui').classList.add('hidden');
+            document.getElementById('victory-phase-ui').classList.remove('hidden');
+
+            document.getElementById('victory-icon').className = "w-7 h-7 text-emerald-500";
+            document.getElementById('victory-badge-txt').innerText = "CREATIVE LIFE EVALUATION";
+            
+            const titleEl = document.getElementById('victory-title-txt');
+            const descEl = document.getElementById('victory-desc-txt');
+            const cardEl = document.getElementById('victory-summary-card');
+
+            titleEl.innerText = "同人誌創作ストーリー 完結！";
+            
+            let rate = "A (極めて優秀)";
+            let feedback = "すべての技術的ハザード、奥付の法令規格、主催者検閲、そして国会図書館への納本義務と納税義務をパーフェクトにクリアしました！中学生サークル「まじかるベーカリー」は後世の文化財を守る立派な市民サークルとして世界に到達しました。";
+
+            if (!evaluationScore.hasDeposit && !evaluationScore.hasTax) {
+                rate = "C (法令違反の恐れあり)";
+                feedback = "原稿は完成しましたが、100部以上売れた後の国会図書館への納本義務を怠り、かつ所得申告を隠したため、将来税務調査や過怠金のペナルティを受ける重大リスクがあります。";
+            } else if (!evaluationScore.hasDeposit) {
+                rate = "B (納税遵守・納本不足)";
+                feedback = "税金はしっかり申告していますが、日本の貴重な同人文化財として国会図書館に納本(寄贈)する義務をスルーしてしまいました。歴史に本が残りません。";
+            } else if (!evaluationScore.hasTax) {
+                rate = "B (文化貢献・脱税リスク)";
+                feedback = "国会図書館への納本を終え、日本の知的財産を守りましたが、売上利益の申告を怠ったため、税務署からの説明要求があった際に証明不全となるリスクがあります。";
+            }
+
+            descEl.innerHTML = feedback;
+
+            cardEl.innerHTML = `
+                <span class="text-[9px] text-sky-400 uppercase font-serif font-bold">FINAL AUDIT REPORT</span>
+                <div class="flex justify-between mt-1 text-xs font-mono text-stone-300">
+                    <span>サークル総合評価:</span>
+                    <span class="text-sky-300 font-bold">${rate}</span>
+                </div>
+                <div class="flex justify-between mt-1 text-xs font-mono text-stone-300">
+                    <span>国会図書館 納本ステータス:</span>
+                    <span class="${evaluationScore.hasDeposit ? 'text-emerald-400' : 'text-red-400'} font-bold">
+                        ${evaluationScore.hasDeposit ? '納本完了（文化遺産登録）' : '未納本（納本義務スルー）'}
+                    </span>
+                </div>
+                <div class="flex justify-between mt-1 text-xs font-mono text-stone-300">
+                    <span>税務財務 適合率:</span>
+                    <span class="${evaluationScore.hasTax ? 'text-emerald-400' : 'text-red-400'} font-bold">
+                        ${evaluationScore.hasTax ? '申告準備完了（適法）' : '無申告（脱税ハザード発生）'}
+                    </span>
+                </div>
+            `;
+
+            writeLog(`[FINISH-EVALUATION] Project finalized. Rating: ${rate}`, 'success');
+            showToast("創作活動の行動評価が完了しました！");
+        }
+
+        // =================== PROJECT JUDGE: GAME LOGIC ===================
+        function advanceNarrativeState(evidenceId) {
+            if (appState.activeProject !== 'judge') return;
+            const project = gameDatabase.judge;
+            const item = project.evidence[evidenceId];
+            if (!item) return;
+
+            if (item.level >= 4) {
+                showToast(`「${item.name}」の仮説レベルは最大です。`);
+                return;
+            }
+
+            const prevLevel = item.level;
+            item.level++;
+
+            const steps = ["知らない", "知る", "探求", "推論", "仮説検証"];
+            const currentStepName = steps[item.level];
+
+            document.getElementById(`level-${evidenceId}`).innerText = item.level;
+            
+            const detailText = appState.language === 'ja' ? item.details[item.level] : item.detailsZh[item.level];
+            document.getElementById(`text-${evidenceId}`).innerText = detailText;
+
+            updateDevNarrativeMap(evidenceId, prevLevel, item.level);
+            project.flow = Math.min(65, project.flow + 10);
+            updateFlowUI();
+
+            writeLog(`[FLAG-UPDATE] "${item.name}" -> [${currentStepName}]`, 'success');
+            showToast(`認知フラグ更新: 「${item.name}」を [${currentStepName}] へ。`);
+
+            checkTrialReadyState();
+        }
+
+        function checkTrialReadyState() {
+            const project = gameDatabase.judge;
+            const isReady = (project.evidence.key.level >= 4);
+            const btn = document.getElementById('btn-goto-trial');
+            if (isReady) {
+                btn.removeAttribute('disabled');
+                btn.classList.add('animate-pulse');
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btn.classList.remove('animate-pulse');
+            }
+        }
+
+        function transitionToTrial() {
+            const project = gameDatabase.judge;
+            project.phase = 'trial';
+            document.getElementById('investigation-phase-ui').classList.add('hidden');
+            document.getElementById('trial-phase-ui').classList.remove('hidden');
+            document.getElementById('game-phase-badge').innerText = "陪審公判 (TRIAL)";
+            writeLog("[TRIAL-OPEN] Hamilton Judge opened court trial.", 'system');
+        }
+
+        function triggerContradictionCheck() {
+            writeLog("[CONTRADICTION] Successful accusation with 温室の鍵.", 'success');
+            showToast("温室の鍵の泥がアリバイを打破！");
+
+            project = gameDatabase.judge;
+            project.phase = 'victory';
+
+            document.getElementById('trial-phase-ui').classList.add('hidden');
+            document.getElementById('victory-phase-ui').classList.remove('hidden');
+
+            document.getElementById('victory-badge-txt').innerText = "CASE RESOLVED";
+            document.getElementById('victory-title-txt').innerText = "マナーハウス事件解決";
+            document.getElementById('victory-desc-txt').innerText = "「温室の鍵に付着した特殊な赤粘土」と「書斎窓の外の土壌」が一致。これにより執事レナードのアリバイは完全に崩壊し、真実に到達しました。";
+
+            document.getElementById('victory-summary-card').innerHTML = `
+                <div class="flex justify-between font-mono text-stone-300">
+                    <span>解決証拠:</span>
+                    <span class="text-sky-300">温室の鍵（赤粘土痕）</span>
+                </div>
+                <div class="flex justify-between font-mono text-stone-300 mt-1">
+                    <span>整合性チェック:</span>
+                    <span class="text-emerald-400">100% COMPLETE</span>
+                </div>
+            `;
+        }
+
+        // =================== SYSTEM COMMON LOGIC ===================
+        function syncProjectToScriptEditor() {
+            const project = gameDatabase[appState.activeProject];
+            const textEl = document.getElementById('script-textarea');
+            const targetScript = appState.language === 'ja' ? project.script : project.scriptZh;
+            textEl.value = JSON.stringify(targetScript, null, 2);
+            document.getElementById('script-filename-badge').innerText = `${appState.activeProject}_scenario_${appState.language}.json`;
+        }
+
+        function syncScriptToGame() {
+            const rawText = document.getElementById('script-textarea').value;
+            try {
+                const parsed = JSON.parse(rawText);
+                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].hasOwnProperty('speaker') && parsed[0].hasOwnProperty('text')) {
+                    if (appState.language === 'ja') {
+                        gameDatabase[appState.activeProject].script = parsed;
+                    } else {
+                        gameDatabase[appState.activeProject].scriptZh = parsed;
+                    }
+                    appState.currentScriptIndex = 0;
+                    renderDialogue();
+                    writeLog(`[DEV-COMPILER] Customized scenario compiled successfully.`, "success");
+                    showToast("カスタムシナリオをテスト環境に適用しました。");
+                } else {
+                    throw new Error("Format is invalid. Array of objects {speaker, text} is required.");
+                }
+            } catch(e) {
+                writeLog(`[DEV-COMPILER-ERROR] Compile failed: ${e.message}`, "error");
+                showToast("JSON構文にエラーがあります。括弧や引用符をご確認ください。");
+            }
+        }
+
+        function renderDialogue() {
+            const project = gameDatabase[appState.activeProject];
+            const targetScript = appState.language === 'ja' ? project.script : project.scriptZh;
+            const data = targetScript[appState.currentScriptIndex];
+            if (!data) return;
+
+            document.getElementById('textbox-speaker').innerText = data.speaker;
+            document.getElementById('textbox-content').innerText = data.text;
+            document.getElementById('textbox-line-index').innerText = `PAGE: ${appState.currentScriptIndex + 1} / ${targetScript.length}`;
+        }
+
+        function advanceDialogue() {
+            const project = gameDatabase[appState.activeProject];
+            const targetScript = appState.language === 'ja' ? project.script : project.scriptZh;
+            if (appState.currentScriptIndex < targetScript.length - 1) {
+                appState.currentScriptIndex++;
+                renderDialogue();
+                writeLog(`[SCRIPT-PROGRESS] Advanced script to page ${appState.currentScriptIndex + 1}.`);
+            } else {
+                writeLog("[SCRIPT-END] Dialogue end reached.", "warning");
+                showToast("手記の末尾です。ゲーム操作でイベントを進めてください。");
+            }
+        }
+
+        function updateFlowUI() {
+            const project = gameDatabase[appState.activeProject];
+            const bar = document.getElementById('flow-indicator-bar');
+            bar.style.width = `${project.flow}%`;
+        }
+
+        function switchDevTab(tabId) {
+            const tabs = ['tab-narrative', 'tab-magic-todo', 'tab-glossary', 'tab-characters', 'tab-script'];
+            tabs.forEach(t => {
+                const tabEl = document.getElementById(t);
+                const btnEl = document.getElementById(t.replace('tab-', 'tab-btn-'));
+                
+                if (tabEl) {
+                    tabEl.classList.add('hidden');
+                }
+                if (btnEl) {
+                    btnEl.classList.remove('border-sky-600', 'text-sky-800');
+                    btnEl.classList.add('border-transparent', 'text-stone-500');
+                }
+            });
+
+            const activeTab = document.getElementById(tabId);
+            const activeBtn = document.getElementById(tabId.replace('tab-', 'tab-btn-'));
+            
+            if (activeTab) {
+                activeTab.classList.remove('hidden');
+            }
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-stone-500');
+                activeBtn.classList.add('border-sky-600', 'text-sky-800');
+            }
+
+            writeLog(`[DEV-TAB] Tab changed to: ${tabId.toUpperCase()}`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('game-toast');
+            document.getElementById('game-toast-text').innerText = msg;
+            toast.classList.remove('-translate-y-12', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-12', 'opacity-0');
+            }, 3000);
+        }
+
+        function writeLog(message, type = 'info') {
+            const container = document.getElementById('debug-log-list');
+            const logItem = document.createElement('div');
+            logItem.className = 'text-[10px] leading-tight';
+            let colorClass = 'text-stone-600';
+            if (type === 'system') colorClass = 'text-sky-700 font-bold';
+            if (type === 'success') colorClass = 'text-emerald-600 font-bold';
+            if (type === 'error') colorClass = 'text-red-600 font-bold';
+            if (type === 'warning') colorClass = 'text-amber-600 font-bold';
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            logItem.innerHTML = `<span class="opacity-50 font-mono">[${timeStr}]</span> <span class="${colorClass}">${message}</span>`;
+            container.appendChild(logItem);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearConsoleLog() {
+            document.getElementById('debug-log-list').innerHTML = '';
+            writeLog("[CONSOLE] Cleared debugger log console.", "system");
+        }
+
+        // --- JSON & Standalone Player Export 機能 ---
+        function downloadScenarioJSON() {
+            const rawText = document.getElementById('script-textarea').value;
+            try {
+                // バリデーションチェック
+                JSON.parse(rawText);
+                const blob = new Blob([rawText], { type: "application/json;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `${appState.activeProject}_scenario_export_${appState.language}.json`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                writeLog(`[EXPORT] Scenario JSON downloaded successfully.`, 'success');
+                showToast("JSONファイルを保存しました！");
+            } catch(e) {
+                showToast("JSONが不正な形式のためダウンロードできません。");
+                writeLog(`[EXPORT-ERROR] Invalid JSON in textarea: ${e.message}`, 'error');
+            }
+        }
+
+        function exportStandalonePlayerHTML() {
+            const rawText = document.getElementById('script-textarea').value;
+            try {
+                const parsedJSON = JSON.parse(rawText);
+                const stringifiedJSON = JSON.stringify(parsedJSON, null, 2);
+
+                // 単体再生プレイヤーHTMLのテンプレートを構築
+                const htmlTemplate = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standalone Novel Game Player</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Serif JP', serif; background-color: #f0f7fc; color: #1e293b; }
+        .wood-panel {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border: 2px solid #0284c7;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+    <\/style>
+<\/head>
+<body class="h-screen overflow-hidden flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl h-[500px] wood-panel rounded-xl flex flex-col justify-between p-6 relative shadow-2xl">
+        
+        <!-- 背景演出やアイコン -->
+        <div class="flex justify-between items-center border-b border-sky-300 pb-2 mb-4 shrink-0">
+            <div>
+                <span class="text-xs font-bold text-sky-800 uppercase tracking-widest">Standalone Player Engine v1.0</span>
+                <h2 class="text-base font-bold text-sky-950">まじかるベーカリー / シナリオプレイヤー</h2>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-sky-600 flex items-center justify-center text-white">
+                🎬
+            </div>
+        </div>
+
+        <!-- メイン会話劇のビジュアル演出（背景カラーや表情） -->
+        <div class="flex-1 flex items-center justify-center bg-white/70 rounded-lg p-6 border border-sky-200 shadow-inner relative overflow-hidden">
+            <div id="visual-cue-bg" class="absolute inset-0 bg-transparent transition-all duration-500 opacity-25"><\/div>
+            
+            <div class="text-center z-10">
+                <span id="char-badge" class="px-3 py-1 bg-sky-600 text-white rounded-full text-xs font-bold shadow-md inline-block mb-3 animate-bounce">CHAR<\/span>
+                <p id="dialogue-text" class="text-stone-900 font-bold text-sm md:text-base leading-relaxed max-w-md mx-auto"><\/p>
+            </div>
+        </div>
+
+        <!-- 下部：操作コントロール -->
+        <div class="mt-4 flex justify-between items-center pt-2 border-t border-sky-300 shrink-0">
+            <span id="page-count" class="text-xs text-sky-800 font-bold font-mono">PAGE: 1 / 1<\/span>
+            <div class="flex gap-2">
+                <button onclick="prevLine()" class="px-3 py-1.5 bg-white border border-sky-400 hover:bg-sky-50 text-sky-800 text-xs font-bold rounded shadow-sm transition">◀ 前へ</button>
+                <button onclick="nextLine()" class="px-5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded shadow transition">次へ ▶</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 自動埋め込みされたエクスポートシナリオJSON
+        const gameScenario = ${stringifiedJSON};
+
+        let currentIndex = 0;
+
+        function updateScreen() {
+            if (gameScenario.length === 0) return;
+            const data = gameScenario[currentIndex];
+            
+            document.getElementById('char-badge').innerText = data.speaker;
+            
+            // タグ解釈 (例: [IMAGE: s_room.jpg] などの演出を簡易処理)
+            let cleanText = data.text;
+            let bgCue = document.getElementById('visual-cue-bg');
+            
+            if (cleanText.includes('[IMAGE:')) {
+                bgCue.className = "absolute inset-0 bg-sky-200 transition-all duration-500 opacity-40";
+                cleanText = cleanText.replace(/\\\\\\[IMAGE:[^\\\\\\]]+\\\\\\]/g, "");
+            } else if (cleanText.includes('[CHAR:')) {
+                bgCue.className = "absolute inset-0 bg-yellow-100 transition-all duration-500 opacity-40";
+                cleanText = cleanText.replace(/\\\\\\[CHAR:[^\\\\\\]]+\\\\\\]/g, "");
+            } else {
+                bgCue.className = "absolute inset-0 bg-transparent transition-all duration-500 opacity-25";
+            }
+            
+            document.getElementById('dialogue-text').innerText = cleanText;
+            document.getElementById('page-count').innerText = "PAGE: " + (currentIndex + 1) + " / " + gameScenario.length;
+        }
+
+        function nextLine() {
+            if (currentIndex < gameScenario.length - 1) {
+                currentIndex++;
+                updateScreen();
+            } else {
+                alert("最終ページに到達しました。");
+            }
+        }
+
+        function prevLine() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateScreen();
+            }
+        }
+
+        // 読み込み時に最初の一コマを表示
+        window.onload = function() {
+            updateScreen();
+        }
+    <\/script>
+</body>
+</html>`;
+
+                const blob = new Blob([htmlTemplate], { type: "text/html;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `${appState.activeProject}_player_${appState.language}.html`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                writeLog(`[EXPORT] Standalone Player HTML compiled & downloaded successfully!`, 'success');
+                showToast("単体再生プレイヤーHTMLを書き出しました！");
+            } catch(e) {
+                showToast("JSONが不正な形式のため書き出しできません。テスト反映を実行してください。");
+                writeLog(`[EXPORT-ERROR] Compile Standalone Player failed: ${e.message}`, 'error');
+            }
+        }
+
+        function resetGame() {
+            const currentProject = appState.activeProject;
+            todoDecompositionState.currentLevelIndex = 0; // Magic ToDoリセット
+            if (currentProject === 'doujin') {
+                gameDatabase.doujin.phase = 'beginning';
+                gameDatabase.doujin.subPhase = 'write';
+                gameDatabase.doujin.flow = 35;
+                Object.keys(gameDatabase.doujin.evidence).forEach(id => {
+                    gameDatabase.doujin.evidence[id].level = 0;
+                    document.getElementById(`level-${id}`).innerText = 0;
+                    document.getElementById(`badge-${id}`).innerText = "未認知";
+                    document.getElementById(`badge-${id}`).className = "text-[9px] bg-stone-200 text-stone-600 px-1.5 rounded";
+                    document.getElementById(`text-${id}`).innerText = appState.language === 'ja' 
+                        ? gameDatabase.doujin.evidence[id].details[0] 
+                        : gameDatabase.doujin.evidence[id].detailsZh[0];
+                });
+
+                document.getElementById('colo-opt-1').checked = false;
+                document.getElementById('colo-opt-2').checked = false;
+                document.getElementById('colo-opt-3').checked = false;
+                document.getElementById('colo-opt-4').checked = false;
+                document.getElementById('colo-opt-5').checked = false;
+                document.getElementById('colo-opt-6').checked = false;
+                document.getElementById('colo-opt-fan').checked = false;
+
+                document.getElementById('review-opt-r18').value = "invalid";
+                document.getElementById('review-opt-trace').value = "invalid";
+
+                checkDoujinPrintReady();
+                updateDoujinHypothesisChips();
+            } else {
+                gameDatabase.judge.phase = 'investigation';
+                gameDatabase.judge.flow = 40;
+                Object.keys(gameDatabase.judge.evidence).forEach(id => {
+                    gameDatabase.judge.evidence[id].level = 0;
+                    document.getElementById(`level-${id}`).innerText = 0;
+                    document.getElementById(`text-${id}`).innerText = appState.language === 'ja' 
+                        ? gameDatabase.judge.evidence[id].details[0] 
+                        : gameDatabase.judge.evidence[id].detailsZh[0];
+                });
+                checkTrialReadyState();
+            }
+            loadProject(currentProject);
+            writeLog(`[SYSTEM] Project [${currentProject.toUpperCase()}] reset.`, 'system');
+            showToast("シミュレータ環境を初期化しました。");
+        }
+    </script>
+</body>
+</html>

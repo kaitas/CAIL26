@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NobelEngine - 開発・拡張ポータル</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #fafaf9;
+            color: #1c1917;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 400px;
+            min-height: 300px;
+        }
+        .agent-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Chosen Palette: Warm Neutral (Stone) & Sky Blue Accent -->
+    <!-- Application Structure Plan: The application is structured as an interactive Developer Portal (SPA) with a sidebar navigation and dynamic content panels. This structure was chosen because `AGENTS.md` is a technical documentation/guideline file. A dashboard-like, sectioned approach allows developers and AI agents to easily explore specific architectural constraints, character designs, or future roadmaps without scrolling through a dense markdown file. Tabbed navigation provides a clean, focused view for each distinct domain of the engine. -->
+    <!-- Visualization & Content Choices: 
+         - Task Avalanche (Data) -> Bar Chart (Chart.js) -> Hover Tooltips -> Visually proves the exponential increase in hours (20 to 1200), driving home the "terror" of the avalanche concept.
+         - Agents/Characters (Insights) -> Interactive Cards -> Click to reveal "Wants" -> Separates surface "Needs" from deeper "Wants" to emphasize narrative depth.
+         - Architecture/Roadmap (Structure) -> CSS Grid/Flexbox timelines & blocks -> Explains strict constraints (Single-file, Tokens) clearly without SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">⚙️</span>
+                    <h1 class="text-xl font-bold text-stone-800 tracking-tight">NobelEngine <span class="text-sm font-normal text-stone-500">Agents Portal</span></h1>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 max-w-7xl mx-auto w-full flex flex-col md:flex-row">
+        <nav class="md:w-64 bg-stone-50 border-r border-stone-200 shrink-0 md:h-[calc(100vh-4rem)] md:sticky md:top-16 overflow-y-auto">
+            <ul class="flex flex-row md:flex-col p-4 gap-2 overflow-x-auto md:overflow-x-visible">
+                <li>
+                    <button id="nav-overview" onclick="showTab('overview')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-sm border-l-4 bg-sky-100 text-sky-800 border-sky-500 whitespace-nowrap transition-colors">
+                        📊 概要 (Overview)
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-architecture" onclick="showTab('architecture')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-sm border-l-4 text-stone-500 border-transparent hover:bg-stone-100 whitespace-nowrap transition-colors">
+                        🏗️ アーキテクチャ (Architecture)
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-agents" onclick="showTab('agents')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-sm border-l-4 text-stone-500 border-transparent hover:bg-stone-100 whitespace-nowrap transition-colors">
+                        👩‍🎨 エージェント設計 (Agents)
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-modules" onclick="showTab('modules')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-sm border-l-4 text-stone-500 border-transparent hover:bg-stone-100 whitespace-nowrap transition-colors">
+                        🧩 モジュール (Modules)
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-roadmap" onclick="showTab('roadmap')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-sm border-l-4 text-stone-500 border-transparent hover:bg-stone-100 whitespace-nowrap transition-colors">
+                        🚀 ロードマップ (Roadmap)
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="flex-1 p-6 lg:p-10 bg-white">
+            
+            <section id="overview" class="block animate-fade-in">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-stone-800 mb-4">プロジェクト概要</h2>
+                    <p class="text-stone-600 leading-relaxed mb-4">
+                        本ポータルは、NobelEngine（クラシック判事＆同人誌製作・ナラティブ設計スイート）の全体像を把握するためのダッシュボードです。このセクションでは、エンジンの根幹となる体験設計（Narrativeデザイン）の目的と、シミュレーションの核となる要素について説明します。
+                    </p>
+                </div>
+                
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-6 md:p-8">
+                    <div class="flex items-start gap-4 mb-6">
+                        <div class="text-4xl">📖</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-stone-800 mb-2">ナラティブデザイン検証エンジン</h3>
+                            <p class="text-stone-600 text-sm leading-relaxed">
+                                プレイヤーの「知らない（Unknown）」という認知状態を、ゲーム内の「探求」や「検証」といったステップを経て「到達（Resolution）」へ深化させるプロセスをシミュレートします。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="text-4xl">🌪️</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-stone-800 mb-2">タスク雪崩（Task Avalanche）の可視化</h3>
+                            <p class="text-stone-600 text-sm leading-relaxed">
+                                中学生が直面する同人誌製作のリアルな諸問題（原稿トンボ、予算計算、奥付義務、国会図書館納本、税務）を題材とし、体験の深度に比例してToDoタスクが爆発的に急増する「現実の創作の恐怖と面白さ」を電子的に表現します。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="architecture" class="hidden animate-fade-in">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-stone-800 mb-4">コア・アーキテクチャ</h2>
+                    <p class="text-stone-600 leading-relaxed mb-4">
+                        開発および拡張における厳格な技術的制約と設計思想を解説します。このセクションは、AIエージェントや共同開発者がコードを改変する際に遵守すべき絶対的なルール群（Guardrails）を含んでいます。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
+                        <div class="text-sky-600 text-3xl mb-4">📄</div>
+                        <h3 class="text-lg font-bold text-stone-800 mb-2">Single-File Mandate</h3>
+                        <p class="text-stone-600 text-sm leading-relaxed">
+                            ゲームプレイルームと監査ツールは全て単一の <code class="bg-stone-100 px-1 py-0.5 rounded text-sky-700">index.html</code> に収めます。npmやビルド環境不要で即時実行可能であることが必須です。
+                        </p>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
+                        <div class="text-sky-600 text-3xl mb-4">🎨</div>
+                        <h3 class="text-lg font-bold text-stone-800 mb-2">Design Tokens</h3>
+                        <p class="text-stone-600 text-sm leading-relaxed">
+                            <code class="bg-stone-100 px-1 py-0.5 rounded text-sky-700">--primary-theme</code> 等のCSS Variablesを使用。リアルタイムカラーピッカーを介し、スキームを動的に再描画する機構を破壊してはなりません。
+                        </p>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
+                        <div class="text-sky-600 text-3xl mb-4">📦</div>
+                        <h3 class="text-lg font-bold text-stone-800 mb-2">Export Engine</h3>
+                        <p class="text-stone-600 text-sm leading-relaxed">
+                            内部のシナリオJSON配列をパースし、ブラウザで直接動作する別ファイルの「スタンドアロン再生機」を動的ビルドしてダウンロード可能にします。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-6">
+                    <h3 class="text-amber-800 font-bold mb-2 flex items-center gap-2"><span>⚠️</span> AIエージェントへの約束事 (Guardrails)</h3>
+                    <ul class="list-disc pl-5 text-sm text-amber-900 space-y-2">
+                        <li>リファクタリング時も必ず <strong>単一ファイル（HTML, CSS, JSインライン結合）</strong> を維持すること。</li>
+                        <li>カラーテーマを動的反映するための <code>applyCustomThemeColor()</code> を保護すること。</li>
+                        <li>多言語対応（<code>ja</code> / <code>zh</code>）の翻訳JSONを辞書やToDoテキスト含め整合させること。</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="agents" class="hidden animate-fade-in">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-stone-800 mb-4">主要エージェント（キャラクター）設計</h2>
+                    <p class="text-stone-600 leading-relaxed mb-4">
+                        シナリオの一貫性を担保するためのキャラクタープロファイルです。各カードをクリックして、表面的な「Needs（欲求）」の裏に隠された、本質的な「Wants（真の目的）」を展開・探求してください。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="agent-card bg-white border border-stone-200 rounded-xl overflow-hidden cursor-pointer" onclick="toggleDetails('detail-komugi', 'icon-komugi')">
+                        <div class="p-6 bg-stone-50 border-b border-stone-100 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-bold text-stone-800">こむぎ (Komugi)</h3>
+                                <p class="text-xs font-medium text-sky-600 mt-1 uppercase tracking-wider">作画・ビジュアル担当</p>
+                            </div>
+                            <span id="icon-komugi" class="text-stone-400 text-xl transition-transform">➕</span>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-sm font-bold text-stone-500 mb-2">NEEDS (表面的な欲求)</h4>
+                            <p class="text-stone-800 text-sm">可愛いイラストや漫画を本にして、即売会でたくさんの人に褒められたい。</p>
+                        </div>
+                        <div id="detail-komugi" class="hidden bg-sky-50 p-6 border-t border-sky-100">
+                            <h4 class="text-sm font-bold text-sky-700 mb-2">WANTS (本質的な欲求)</h4>
+                            <p class="text-sky-900 text-sm">技術的な壁（トンボや規格）への恐怖を克服し、相棒との表現の共有を実証したい。</p>
+                        </div>
+                    </div>
+
+                    <div class="agent-card bg-white border border-stone-200 rounded-xl overflow-hidden cursor-pointer" onclick="toggleDetails('detail-aoi', 'icon-aoi')">
+                        <div class="p-6 bg-stone-50 border-b border-stone-100 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-bold text-stone-800">あおい (Aoi)</h3>
+                                <p class="text-xs font-medium text-amber-600 mt-1 uppercase tracking-wider">シナリオ・会計担当</p>
+                            </div>
+                            <span id="icon-aoi" class="text-stone-400 text-xl transition-transform">➕</span>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-sm font-bold text-stone-500 mb-2">NEEDS (表面的な欲求)</h4>
+                            <p class="text-stone-800 text-sm">頭の中の壮大なファンタジー小説を完璧な「本」としてこの世に残したい。</p>
+                        </div>
+                        <div id="detail-aoi" class="hidden bg-amber-50 p-6 border-t border-amber-100">
+                            <h4 class="text-sm font-bold text-amber-700 mb-2">WANTS (本質的な欲求)</h4>
+                            <p class="text-amber-900 text-sm">他者に否定される恐怖を乗り越え、こむぎを信頼し、共同制作を成功させたい。</p>
+                        </div>
+                    </div>
+
+                    <div class="agent-card bg-white border border-stone-200 rounded-xl overflow-hidden cursor-pointer" onclick="toggleDetails('detail-yuzu', 'icon-yuzu')">
+                        <div class="p-6 bg-stone-50 border-b border-stone-100 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-bold text-stone-800">ゆず (Yuzu)</h3>
+                                <p class="text-xs font-medium text-emerald-600 mt-1 uppercase tracking-wider">アドバイザー</p>
+                            </div>
+                            <span id="icon-yuzu" class="text-stone-400 text-xl transition-transform">➕</span>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-sm font-bold text-stone-500 mb-2">NEEDS (表面的な欲求)</h4>
+                            <p class="text-stone-800 text-sm">二人の衝突を回避し、初めての本を無事に完成させられるようサポートしたい。</p>
+                        </div>
+                        <div id="detail-yuzu" class="hidden bg-emerald-50 p-6 border-t border-emerald-100">
+                            <h4 class="text-sm font-bold text-emerald-700 mb-2">WANTS (本質的な欲求)</h4>
+                            <p class="text-emerald-900 text-sm">過去の自分の印刷大失敗（RGBくすみ、不備）を、二人を支えることで克服したい。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="modules" class="hidden animate-fade-in">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-stone-800 mb-4">特殊機能モジュール</h2>
+                    <p class="text-stone-600 leading-relaxed mb-4">
+                        NobelEngineの核となる3つのゲームメカニクスを解説します。特に「Magic ToDo」によるタスクの指数関数的増加は、以下のチャートで確認できます。
+                    </p>
+                </div>
+
+                <div class="bg-white border border-stone-200 rounded-xl overflow-hidden mb-8">
+                    <div class="p-6 bg-stone-50 border-b border-stone-200">
+                        <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2"><span>📈</span> Magic ToDo & Task Avalanche</h3>
+                        <p class="text-stone-600 text-sm mt-2">
+                            goblin.toolsの概念をオマージュ。シンプルな目標が「細分化」されると、3段階の解像度ツリーが展開されます。最高レベルに達すると想定時間が爆発し、心理集中度ゲージが「不安」にシフトします。
+                        </p>
+                    </div>
+                    <div class="p-6">
+                        <div class="chart-container">
+                            <canvas id="avalancheChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-stone-400 mt-4">グラフ: 解像度レベル上昇に伴う想定作業時間の爆発的増加</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-stone-200 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-stone-800 mb-3 flex items-center gap-2"><span>🔍</span> Narrative Flag Tracker</h3>
+                        <p class="text-stone-600 text-sm leading-relaxed mb-4">
+                            証拠品や課題に対するプレイヤーの理解度を追跡します。<br>レベル遷移: <code class="bg-stone-100 px-1 rounded">0(知らない) ➔ 1(知る) ➔ 2(探求) ➔ 3(推論) ➔ 4(仮説検証)</code>
+                        </p>
+                        <div class="text-xs text-stone-500 bg-stone-50 p-3 rounded">
+                            <strong>拡張方法:</strong> <code>gameDatabase.evidence</code> に一意のキーと配列（0〜4のテキスト）を多言語分定義する。
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-stone-800 mb-3 flex items-center gap-2"><span>📚</span> 獲得型製本用語辞書</h3>
+                        <p class="text-stone-600 text-sm leading-relaxed mb-4">
+                            原稿サイズや予算計算のナラティブレベルが上がると、対応する専門用語（トンボ、ノド、PP加工等）の辞書カードが「未理解 🔒」から「理解済 ✨」に変化しアンロックされます。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="roadmap" class="hidden animate-fade-in">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-stone-800 mb-4">エージェント開発ロードマップ</h2>
+                    <p class="text-stone-600 leading-relaxed mb-4">
+                        今後の拡張計画です。共同開発者およびAIエージェントは、以下のマイルストーンに沿って機能実装を進めることが推奨されます。
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="flex gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-bold">1</div>
+                            <div class="w-0.5 h-full bg-stone-200 mt-2"></div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-xl p-6 flex-1 shadow-sm pb-8">
+                            <h3 class="text-lg font-bold text-stone-800 mb-2">シナリオタグパーサーの高度化</h3>
+                            <p class="text-stone-600 text-sm mb-2">現状は基本タグを簡易背景色変化で代替。</p>
+                            <div class="bg-sky-50 text-sky-800 text-sm p-3 rounded">
+                                <strong>改善目標:</strong> スタンドアロンプレイヤー内で、CSSグラフィックやアニメーションアセットを用いた完全なビジュアル演出をサポートするローカル描画コードの強化。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-bold">2</div>
+                            <div class="w-0.5 h-full bg-stone-200 mt-2"></div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-xl p-6 flex-1 shadow-sm pb-8">
+                            <h3 class="text-lg font-bold text-stone-800 mb-2">選択肢分岐ツリーの視覚化</h3>
+                            <div class="bg-stone-50 text-stone-700 text-sm p-3 rounded">
+                                <strong>改善目標:</strong> 「Script設計」タブ内に、シーンの接続関係をグラフとして視覚化するマップ表示を追加。ドラッグ＆ドロップでストーリーを並び替え可能にする。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-bold">3</div>
+                            <div class="w-0.5 h-full bg-stone-200 mt-2"></div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-xl p-6 flex-1 shadow-sm pb-8">
+                            <h3 class="text-lg font-bold text-stone-800 mb-2">印刷所シミュレータの実装</h3>
+                            <div class="bg-stone-50 text-stone-700 text-sm p-3 rounded">
+                                <strong>改善目標:</strong> ページ数、背幅、用紙坪量、部数、PP加工の決定でリアルタイムに見積価格が連動。頒布価格決定時に「損益分岐点」をダイナミックに試算する会計ツールの可視化。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-bold">4</div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-xl p-6 flex-1 shadow-sm">
+                            <h3 class="text-lg font-bold text-stone-800 mb-2">クラウドセーブ / コラボレーション</h3>
+                            <div class="bg-stone-50 text-stone-700 text-sm p-3 rounded">
+                                <strong>改善目標:</strong> Firestore対応。複数ユーザーが同じシナリオを共同で書き換え、リアルタイムに双方のプレビューに反映させるマルチプレイヤーエディタの実装。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const tabs = ['overview', 'architecture', 'agents', 'modules', 'roadmap'];
+        
+        function showTab(tabId) {
+            tabs.forEach(t => {
+                document.getElementById(t).classList.add('hidden');
+                document.getElementById('nav-' + t).classList.remove('bg-sky-100', 'text-sky-800', 'border-sky-500');
+                document.getElementById('nav-' + t).classList.add('text-stone-500', 'border-transparent');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById('nav-' + tabId).classList.add('bg-sky-100', 'text-sky-800', 'border-sky-500');
+            document.getElementById('nav-' + tabId).classList.remove('text-stone-500', 'border-transparent');
+            
+            if(tabId === 'modules' && !window.chartRendered) {
+                renderAvalancheChart();
+                window.chartRendered = true;
+            }
+        }
+
+        function toggleDetails(detailId, iconId) {
+            const detailEl = document.getElementById(detailId);
+            const iconEl = document.getElementById(iconId);
+            
+            if(detailEl.classList.contains('hidden')) {
+                detailEl.classList.remove('hidden');
+                iconEl.innerText = '➖';
+                iconEl.style.transform = 'rotate(180deg)';
+            } else {
+                detailEl.classList.add('hidden');
+                iconEl.innerText = '➕';
+                iconEl.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function renderAvalancheChart() {
+            const ctx = document.getElementById('avalancheChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Lv.1 (通常)', 'Lv.2 (プロ設計)', 'Lv.3 (恐怖の雪崩)'],
+                    datasets: [{
+                        label: '想定作業時間 (h)',
+                        data: [20, 150, 1200],
+                        backgroundColor: [
+                            'rgba(14, 165, 233, 0.8)', 
+                            'rgba(245, 158, 11, 0.8)', 
+                            'rgba(239, 68, 68, 0.8)'   
+                        ],
+                        borderColor: [
+                            'rgb(14, 165, 233)',
+                            'rgb(245, 158, 11)',
+                            'rgb(239, 68, 68)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '想定時間 (Hours)',
+                                font: { family: "'Noto Sans JP', sans-serif" }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { family: "'Noto Sans JP', sans-serif", weight: 'bold' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                            titleFont: { family: "'Noto Sans JP', sans-serif" },
+                            bodyFont: { family: "'Noto Sans JP', sans-serif", size: 14 },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' 時間の作業負荷';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
