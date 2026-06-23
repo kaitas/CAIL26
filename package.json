@@ -1,0 +1,18 @@
+{
+  "name": "nobelengine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NobelEngine — クラシック判事＆同人誌製作・ナラティブ設計スイート（ビルド不要の単一HTMLエンジン）",
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "test": "node scripts/validate.mjs",
+    "serve": "python3 -m http.server 8000"
+  },
+  "homepage": "https://kaitas.github.io/CAIL26/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaitas/CAIL26.git"
+  },
+  "license": "MIT"
+}

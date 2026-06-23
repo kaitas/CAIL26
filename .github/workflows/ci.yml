@@ -1,0 +1,28 @@
+name: CI (Validate)
+
+# PR とフィーチャーブランチ push で検証のみ実行する。
+# main への push は deploy-pages.yml 側で validate→deploy を行うため、ここでは対象外。
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate guardrails
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate (single-file / functions / i18n)
+        run: node scripts/validate.mjs

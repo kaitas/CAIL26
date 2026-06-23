@@ -9,7 +9,30 @@
 - **エンジン本体**: https://kaitas.github.io/CAIL26/
 - **開発・拡張ポータル**: https://kaitas.github.io/CAIL26/nobelengine_agents_portal.html
 
-> `main` への push で GitHub Actions が自動デプロイします（`.github/workflows/deploy-pages.yml`）。
+> `main` への push で GitHub Actions が **検証（CI）→ 自動デプロイ（CD）** を実行します（`.github/workflows/deploy-pages.yml`）。
+
+## 🔄 CI/CD パイプライン
+
+ビルド工程はありませんが、AGENTS.md のガードレールを機械検証する CI ゲートを通してからデプロイします。
+
+| トリガー | 実行内容 | ワークフロー |
+|---|---|---|
+| Pull Request / `main` 以外への push | **検証のみ**（マージ前チェック） | `.github/workflows/ci.yml` |
+| `main` への push / 手動実行 | **検証（CI）→ Pages デプロイ（CD）**（検証失敗時はデプロイしない） | `.github/workflows/deploy-pages.yml` |
+
+検証スクリプト `scripts/validate.mjs`（依存ゼロ）の検査項目:
+
+1. 必須ファイルの存在（`index.html` / ポータル / `AGENTS.md` 等）
+2. **単一ファイル原則** — ローカル相対の `src`/`href` を禁止（外部CDN https のみ許可）
+3. **主要関数の存在** — `applyCustomThemeColor()` などガードレール対象を含む
+4. **多言語整合** — `details ⇔ detailsZh`、`panic ⇔ pressure` の件数一致
+5. HTML 基本健全性（`<html>`/`<body>` 対応・非空）
+
+ローカルでも同じ検証を実行できます（CI と同一）:
+
+```bash
+npm run validate   # = node scripts/validate.mjs
+```
 
 ## 📁 構成
 
@@ -18,6 +41,8 @@
 | `index.html` | エンジン本体。左：プレイアブルゲーム / 右：開発者監査スイート（5タブ）を**単一ファイル**に同梱 |
 | `nobelengine_agents_portal.html` | 開発・拡張ポータル（Chart.js でタスク雪崩・ロードマップを可視化） |
 | `AGENTS.md` | 開発・拡張ガイドライン（設計書＋ロードマップ＋ガードレール） |
+| `scripts/validate.mjs` | CI 検証スクリプト（依存ゼロ）。ガードレールを機械検査 |
+| `package.json` | ローカル用スクリプトランナー（`npm run validate` 等。**ビルドなし・依存なし**） |
 
 ## ✨ 主要機能
 
