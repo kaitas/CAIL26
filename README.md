@@ -41,7 +41,10 @@ npm run validate   # = node scripts/validate.mjs
 | `index.html` | エンジン本体。左：プレイアブルゲーム / 右：開発者監査スイート（5タブ）を**単一ファイル**に同梱 |
 | `nobelengine_agents_portal.html` | 開発・拡張ポータル（Chart.js でタスク雪崩・ロードマップを可視化） |
 | `AGENTS.md` | 開発・拡張ガイドライン（設計書＋ロードマップ＋ガードレール） |
+| `Skill.md` | **学生をゲーム完成まで導く手順書**（日中対訳）。エージェントがこの順で支援 |
 | `scripts/validate.mjs` | CI 検証スクリプト（依存ゼロ）。ガードレールを機械検査 |
+| `scripts/gen_samples.py` | GPT-Image-2 サンプル画像ジェネレータ → `assets/samples/`（スマホ最適化JPEG） |
+| `assets/samples/` | キャラ立ち絵・表紙・エンディング・タイトルのサンプル画像（差し替え前提） |
 | `package.json` | ローカル用スクリプトランナー（`npm run validate` 等。**ビルドなし・依存なし**） |
 
 ## ✨ 主要機能
