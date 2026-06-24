@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>まじかるベーカリー 創刊号 / 魔法面包房</title>
+    <!--
+      player.html — スマホで遊ぶノベルゲーム本体（自己完結・差し替え自由）
+      ・このファイルが「最終的にデプロイされるゲーム」。index.html はこれを iframe でプレビューする。
+      ・物語は下の STORY を書き換えるだけ。立ち絵は assets/samples/ の画像を差し替える。
+      ・スマホファースト（縦型・大きな文字・画面タップで進む・日本語/中文対応）。
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        html, body { height: 100%; }
+        body {
+            font-family: 'Noto Serif JP', serif;
+            margin: 0;
+            background: #0b1220;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        #stage { height: 100dvh; min-height: 100%; }
+        .fade { animation: fade .35s ease; }
+        @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .portrait-pop { animation: pop .35s cubic-bezier(.2,.9,.3,1.2); }
+        @keyframes pop { from { opacity: 0; transform: translateY(18px) scale(.96); } to { opacity: 1; transform: none; } }
+        .ken-burns { animation: kb 18s ease-in-out infinite alternate; }
+        @keyframes kb { from { transform: scale(1.02); } to { transform: scale(1.12); } }
+    </style>
+</head>
+<body>
+<div id="stage" class="relative w-full overflow-hidden flex flex-col text-white">
+
+    <!-- 背景レイヤー -->
+    <div id="bg-layer" class="absolute inset-0 bg-cover bg-center ken-burns" style="background-image:url('assets/samples/title-key-visual.jpg');"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/80"></div>
+
+    <!-- 言語切替 -->
+    <div class="relative z-30 flex justify-end p-3 gap-1.5 shrink-0">
+        <button id="lng-ja" onclick="setLang('ja')" class="px-3 py-1 text-xs font-bold rounded-full bg-white/90 text-sky-700 shadow">日本語</button>
+        <button id="lng-zh" onclick="setLang('zh')" class="px-3 py-1 text-xs font-bold rounded-full bg-black/30 text-white/80 shadow">中文</button>
+    </div>
+
+    <!-- ============ タイトル画面 ============ -->
+    <div id="title-screen" class="relative z-20 flex-1 flex flex-col items-center justify-center text-center px-6 pb-16">
+        <h1 id="t-title" class="text-3xl font-black drop-shadow-lg leading-tight">まじかるベーカリー 創刊号</h1>
+        <p id="t-sub" class="mt-2 text-sm text-white/90 drop-shadow">中学生、はじめて本を作る</p>
+        <button onclick="startGame()" class="mt-8 px-8 py-3 rounded-full bg-sky-500 hover:bg-sky-400 active:scale-95 text-white text-lg font-bold shadow-xl transition">
+            <span id="t-start">はじめる ▶</span>
+        </button>
+    </div>
+
+    <!-- ============ ストーリー画面（タップで進む） ============ -->
+    <div id="story-screen" class="relative z-20 flex-1 flex-col justify-end hidden" onclick="advance()">
+        <!-- 立ち絵 -->
+        <div class="flex-1 flex items-end justify-center overflow-hidden">
+            <img id="portrait" src="" alt="" class="max-h-[58vh] object-contain drop-shadow-2xl portrait-pop" />
+        </div>
+        <!-- 会話ボックス -->
+        <div class="relative shrink-0 m-3 mb-5 rounded-2xl bg-slate-900/85 backdrop-blur border border-white/15 p-4 shadow-2xl">
+            <div class="flex items-center justify-between mb-1.5">
+                <span id="speaker" class="px-3 py-0.5 rounded-full bg-sky-500 text-white text-sm font-bold shadow">こむぎ</span>
+                <span id="counter" class="text-[11px] text-white/50 font-mono">1 / 10</span>
+            </div>
+            <p id="line" class="text-lg leading-relaxed text-white min-h-[5.5rem]"></p>
+            <div class="flex justify-end items-center gap-1 text-sky-300/80 text-xs mt-1">
+                <span id="tap-hint">タップで進む</span>
+                <span class="animate-bounce">▶</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ エンディング画面 ============ -->
+    <div id="ending-screen" class="absolute inset-0 z-40 hidden flex-col items-center justify-center text-center p-6 bg-slate-950/92 overflow-y-auto">
+        <img src="assets/samples/ending-comic-fair.jpg" alt="" class="w-full max-w-sm rounded-2xl shadow-2xl border border-white/10 fade" />
+        <div class="flex items-center gap-3 mt-4">
+            <img src="assets/samples/cover-magical-bakery.jpg" alt="" class="w-14 h-20 object-cover rounded-lg border border-white/20 shadow-lg" />
+            <div class="text-left">
+                <span class="text-[11px] text-white/50 block uppercase tracking-widest">完成 / 完结</span>
+                <span id="e-title" class="text-2xl font-black text-sky-200">完</span>
+            </div>
+        </div>
+        <p id="e-msg" class="mt-4 text-base text-white/90 max-w-sm leading-relaxed">私たちの最初の一冊、無事に届けられた！</p>
+        <button onclick="restart()" class="mt-7 px-7 py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 active:scale-95 text-white font-bold shadow-xl transition">
+            <span id="e-replay">もう一度見る</span>
+        </button>
+    </div>
+
+</div>
+
+<script>
+    // ============ ゲームデータ（ここを書き換えるだけで物語を変えられる）============
+    const NAMES = {
+        komugi: { ja: 'こむぎ', zh: '小麦' },
+        aoi:    { ja: 'あおい', zh: '葵' },
+        yuzu:   { ja: 'ゆず',   zh: '柚子' }
+    };
+    const PORTRAITS = {
+        komugi: 'assets/samples/char-komugi.jpg',
+        aoi:    'assets/samples/char-aoi.jpg',
+        yuzu:   'assets/samples/char-yuzu.jpg'
+    };
+    const STORY = {
+        title:   { ja: 'まじかるベーカリー 創刊号', zh: '魔法面包房 创刊号' },
+        sub:     { ja: '中学生、はじめて本を作る',   zh: '初中生的第一本同人志' },
+        start:   { ja: 'はじめる ▶',  zh: '开始 ▶' },
+        tapHint: { ja: 'タップで進む', zh: '点击继续' },
+        endTitle:{ ja: '完',          zh: '完' },
+        endMsg:  { ja: '私たちの最初の一冊、無事に即売会のみんなに届けられた！', zh: '我们的第一本书，顺利送到了即卖会大家的手中！' },
+        replay:  { ja: 'もう一度見る', zh: '再看一次' },
+        lines: [
+            { c:'komugi', ja:'えへへ、あおいちゃん！私たちでオリジナルの同人誌、作ってみない！？', zh:'嘿嘿，葵酱！我们一起来做属于我们自己的原创同人志吧！？' },
+            { c:'aoi',    ja:'いいね！私の書いたファンタジー小説を、こむぎちゃんの絵で漫画にして本にしたい！', zh:'好呀！把我写的幻想小说，用小麦画的漫画做成书，我超想试！' },
+            { c:'yuzu',   ja:'ふふ、いい意気込みね。でも本を「印刷して」「イベントで配る」には、知らないと危ない決まり事がたくさんあるの。', zh:'呵呵，干劲十足呢。不过要把书「印出来」「在活动上发」，有很多不懂就会踩坑的规矩哦。' },
+            { c:'komugi', ja:'決まり事…？絵を描くのは得意だけど、印刷のことなんて全然わからないよ〜！', zh:'规矩……？画画我在行，可印刷的事我完全不懂呀～！' },
+            { c:'aoi',    ja:'大丈夫、ひとつずつ学ぼう。まずは原稿の「トンボ」と「塗り足し」から。', zh:'没事，我们一个个学。先从原稿的「裁切线」和「出血」开始。' },
+            { c:'yuzu',   ja:'私も昔、塗り足しを忘れて表紙の端が真っ白になっちゃったの…。同じ失敗はさせないわ。', zh:'我以前也忘了留出血，封面边缘印出来一片空白……不会让你们重蹈覆辙的。' },
+            { c:'komugi', ja:'なるほど！3mm外側まで描けばいいんだね。よーし、ぜんぶのイラストを直したよ！', zh:'原来如此！往外多画 3mm 就行了。好，我把所有插画都改好啦！' },
+            { c:'aoi',    ja:'次は予算、奥付、主催チェック、入稿…やることが雪崩みたいに増えてきたね…！', zh:'接下来是预算、版权页、主办审查、送印……要做的事像雪崩一样多起来了…！' },
+            { c:'yuzu',   ja:'そして本が売れたら、国会図書館への納本と、税金の申告も忘れないで。立派な「文化活動」だもの。', zh:'等书卖出去后，别忘了向国会图书馆呈缴，还有税务申报。这可是堂堂正正的「文化活动」呢。' },
+            { c:'komugi', ja:'ぜんぶクリアして…私たちの最初の一冊、即売会のみんなに届けよう！', zh:'全部通关之后……把我们的第一本书，送到即卖会的大家手上吧！' }
+        ]
+    };
+
+    // ============ 進行ロジック ============
+    let lang = 'ja';
+    let idx = 0;
+
+    function t(obj) { return obj[lang]; }
+
+    function setLang(l) {
+        lang = l;
+        document.documentElement.lang = l;
+        document.getElementById('lng-ja').className = 'px-3 py-1 text-xs font-bold rounded-full shadow ' + (l==='ja' ? 'bg-white/90 text-sky-700' : 'bg-black/30 text-white/80');
+        document.getElementById('lng-zh').className = 'px-3 py-1 text-xs font-bold rounded-full shadow ' + (l==='zh' ? 'bg-white/90 text-sky-700' : 'bg-black/30 text-white/80');
+        // 各画面のラベル更新
+        document.getElementById('t-title').innerText = t(STORY.title);
+        document.getElementById('t-sub').innerText = t(STORY.sub);
+        document.getElementById('t-start').innerText = t(STORY.start);
+        document.getElementById('tap-hint').innerText = t(STORY.tapHint);
+        document.getElementById('e-title').innerText = t(STORY.endTitle);
+        document.getElementById('e-msg').innerText = t(STORY.endMsg);
+        document.getElementById('e-replay').innerText = t(STORY.replay);
+        if (!document.getElementById('story-screen').classList.contains('hidden')) render();
+    }
+
+    function startGame() {
+        idx = 0;
+        document.getElementById('title-screen').classList.add('hidden');
+        document.getElementById('story-screen').classList.remove('hidden');
+        document.getElementById('story-screen').classList.add('flex');
+        document.getElementById('bg-layer').style.backgroundImage = "url('assets/samples/cover-magical-bakery.jpg')";
+        render();
+    }
+
+    function render() {
+        const line = STORY.lines[idx];
+        if (!line) return;
+        document.getElementById('speaker').innerText = t(NAMES[line.c]);
+        document.getElementById('counter').innerText = (idx + 1) + ' / ' + STORY.lines.length;
+        const lineEl = document.getElementById('line');
+        lineEl.innerText = '「' + t(line) + '」';
+        lineEl.classList.remove('fade'); void lineEl.offsetWidth; lineEl.classList.add('fade');
+        const p = document.getElementById('portrait');
+        const src = PORTRAITS[line.c];
+        if (p.getAttribute('src') !== src) {
+            p.src = src;
+            p.classList.remove('portrait-pop'); void p.offsetWidth; p.classList.add('portrait-pop');
+        }
+    }
+
+    function advance() {
+        if (idx < STORY.lines.length - 1) { idx++; render(); }
+        else { showEnding(); }
+    }
+
+    function showEnding() {
+        const e = document.getElementById('ending-screen');
+        e.classList.remove('hidden'); e.classList.add('flex');
+    }
+
+    function restart() {
+        document.getElementById('ending-screen').classList.add('hidden');
+        document.getElementById('ending-screen').classList.remove('flex');
+        document.getElementById('story-screen').classList.add('hidden');
+        document.getElementById('story-screen').classList.remove('flex');
+        document.getElementById('title-screen').classList.remove('hidden');
+        document.getElementById('bg-layer').style.backgroundImage = "url('assets/samples/title-key-visual.jpg')";
+    }
+
+    // キーボード操作（PCプレビュー用）
+    document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+            if (!document.getElementById('story-screen').classList.contains('hidden')) { advance(); e.preventDefault(); }
+        }
+    });
+
+    setLang('ja');
+</script>
+</body>
+</html>

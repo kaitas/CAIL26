@@ -32,6 +32,7 @@ const count = (s, sub) => s.split(sub).length - 1;
 section('必須ファイルの存在');
 const REQUIRED_FILES = [
   'index.html',
+  'player.html', // スマホで遊ぶゲーム本体（index.html が iframe で読み込む）
   'nobelengine_agents_portal.html',
   'AGENTS.md',
   'README.md',
@@ -103,15 +104,28 @@ for (const [a, b] of pairs) {
 //     index.html が src/href で参照する assets/ のローカル画像が実在するか
 // ---------------------------------------------------------------------------
 section('参照アセット（assets/）の実在');
-const assetPaths = [...html.matchAll(/(?:src|href)\s*=\s*"((?:\.\/)?assets\/[^"]+)"/gi)]
-  .map((m) => m[1].replace(/^\.\//, ''));
-const uniqueAssets = [...new Set(assetPaths)];
-if (uniqueAssets.length === 0) {
+// index.html と player.html の両方が参照する assets/ 画像を検査
+const assetSources = [['index.html', html]];
+if (existsSync(join(ROOT, 'player.html'))) assetSources.push(['player.html', read('player.html')]);
+const assetRe = /(?:src|href|url\(['"]?)\s*=?\s*['"]?((?:\.\/)?assets\/[^"')]+)/gi;
+const uniqueAssets = new Map(); // rel -> referencing files
+for (const [fname, src] of assetSources) {
+  for (const m of src.matchAll(assetRe)) {
+    const rel = m[1].replace(/^\.\//, '');
+    if (!uniqueAssets.has(rel)) uniqueAssets.set(rel, fname);
+  }
+}
+if (uniqueAssets.size === 0) {
   ok('assets/ への参照なし（チェック対象なし）');
 } else {
-  for (const rel of uniqueAssets) {
-    existsSync(join(ROOT, rel)) ? ok(`${rel} が存在`) : ng(`${rel} が参照されていますが見つかりません`);
+  for (const [rel, fname] of uniqueAssets) {
+    existsSync(join(ROOT, rel)) ? ok(`${rel} が存在（${fname}）`) : ng(`${rel} が参照されていますが見つかりません（${fname}）`);
   }
+}
+
+// index.html が iframe で読み込む player.html の実在
+if (/<iframe[^>]+src\s*=\s*"player\.html"/i.test(html)) {
+  existsSync(join(ROOT, 'player.html')) ? ok('iframe参照 player.html が存在') : ng('iframeが player.html を参照していますが見つかりません');
 }
 
 // ---------------------------------------------------------------------------

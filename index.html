@@ -225,12 +225,13 @@
                 </div>
             </div>
 
-            <!-- スマホプレビュー枠：完成したノベルゲームが「手機(スマホ)」でどう見えるか -->
+            <!-- スマホプレビュー枠：実際のゲーム player.html を iframe 表示（＝最終デプロイ版のプレビュー） -->
             <div class="phone-shell flex-1 justify-center py-1">
               <div class="phone-frame">
                 <div class="phone-notch"></div>
-                <!-- メインシミュレータコンソール（＝スマホの画面そのもの・テーマ連動） -->
-                <div id="game-screen" class="phone-screen flex flex-col dynamic-wood-panel relative">
+                <iframe id="game-preview" src="player.html" title="ゲームプレビュー" class="phone-screen w-full border-0 bg-white block"></iframe>
+                <!-- 学習シミュレーション本体（node等）。読み込み時に右パネル #sim-host へ移設される -->
+                <div id="game-screen" class="flex flex-col dynamic-wood-panel relative rounded-lg overflow-hidden" style="display:none; height:600px;">
                 
                 <!-- 空気感演出 -->
                 <canvas id="court-canvas" class="absolute inset-0 pointer-events-none opacity-20"></canvas>
@@ -573,7 +574,9 @@
               </div><!-- /.phone-frame -->
               <div class="phone-caption">
                 <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
-                <span data-i18n="phone-caption">スマホでの見え方プレビュー（画面をタップで読み進み）</span>
+                <span data-i18n="phone-caption">実ゲーム(player.html)のスマホプレビュー</span>
+                <button onclick="reloadPreview()" title="再読み込み / 重新加载" class="ml-1 px-1.5 py-0.5 rounded border dynamic-border hover:bg-black/5"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                <a href="player.html" target="_blank" title="新しいタブで開く / 在新标签打开" class="px-1.5 py-0.5 rounded border dynamic-border hover:bg-black/5"><i data-lucide="external-link" class="w-3 h-3"></i></a>
               </div>
             </div><!-- /.phone-shell -->
 
@@ -599,7 +602,17 @@
 
         <!-- =================== RIGHT PANEL: DEVELOPER SUITE =================== -->
         <section class="w-1/2 flex flex-col overflow-y-auto border-l border-stone-300/40 dynamic-panel transition-colors duration-300">
-            
+
+            <!-- 学習シミュレーション（元はスマホ内にあった node UI を右へ移設）。#game-screen がここへ入る -->
+            <div class="shrink-0 p-3 pb-0">
+                <div class="flex items-center gap-2 mb-2 px-1">
+                    <i data-lucide="flask-conical" class="w-4 h-4 dynamic-text-accent"></i>
+                    <span class="text-xs font-bold tracking-wider uppercase" data-i18n="sim-lab-title">学習シミュレーション（印刷用語ラボ）</span>
+                    <span class="text-[10px] text-stone-400">/ 学习模拟</span>
+                </div>
+                <div id="sim-host"></div>
+            </div>
+
             <div class="border-b border-stone-200 px-4 flex shrink-0 shadow-sm dynamic-console transition-colors duration-300">
                 <button onclick="switchDevTab('tab-narrative')" id="tab-btn-narrative" class="px-3.5 py-3 text-xs font-bold border-b-2 border-sky-600 text-sky-800 transition flex items-center gap-1">
                     <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
@@ -1080,7 +1093,8 @@
                 "flow-desc": "情報難度とスキル適性から動的に算出",
                 "todo-opt-award": "目標：「漫画賞で新人賞を取る」 (こむぎの発案)",
                 "todo-opt-book": "目標：「初めての同人誌を印刷して頒布する」 (あおいの発案)",
-                "phone-caption": "スマホでの見え方プレビュー（画面をタップで読み進み）"
+                "phone-caption": "実ゲーム(player.html)のスマホプレビュー",
+                "sim-lab-title": "学習シミュレーション（印刷用語ラボ）"
             },
             zh: {
                 "reset-btn": "重新开始",
@@ -1105,7 +1119,8 @@
                 "flow-desc": "根据信息难度和技能自适应计算",
                 "todo-opt-award": "目标：「在漫画奖中夺得新人奖」 (小麦的提议)",
                 "todo-opt-book": "目标：「印刷并发布第一本同人志」 (葵的提议)",
-                "phone-caption": "手机显示效果预览（点击屏幕继续阅读）"
+                "phone-caption": "实际游戏(player.html)的手机预览",
+                "sim-lab-title": "学习模拟（印刷术语实验室）"
             }
         };
 
@@ -1294,8 +1309,24 @@
             theme: 'lightblue' // デフォルトはライトブルー
         };
 
+        // スマホ枠内の iframe を再読み込み（プレビュー更新）
+        function reloadPreview() {
+            const f = document.getElementById('game-preview');
+            if (f) f.src = f.src;
+        }
+        // node(学習シミュレーション本体 #game-screen)をスマホ枠の外＝右パネル #sim-host へ移設
+        function relocateSimToRight() {
+            const host = document.getElementById('sim-host');
+            const gs = document.getElementById('game-screen');
+            if (host && gs && gs.parentElement !== host) {
+                host.appendChild(gs);
+                gs.style.display = 'flex';
+            }
+        }
+
         window.onload = function() {
             lucide.createIcons();
+            relocateSimToRight(); // 先に node を右へ移してから初期化
             initAmbientCanvas();
             applyPresetTheme('lightblue'); // デフォルトライトブルー適用
             loadProject(appState.activeProject);

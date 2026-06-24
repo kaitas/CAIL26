@@ -38,7 +38,8 @@ npm run validate   # = node scripts/validate.mjs
 
 | ファイル | 役割 |
 |---|---|
-| `index.html` | エンジン本体。左：プレイアブルゲーム / 右：開発者監査スイート（5タブ）を**単一ファイル**に同梱 |
+| `player.html` | **スマホで遊ぶゲーム本体**（自己完結・縦型・日中対応）。物語は `STORY` を編集。`index.html` 左の枠はこれを iframe 表示 |
+| `index.html` | 制作環境。左：`player.html` を iframe したスマホプレビュー / 右：学習シミュレーション（印刷用語ラボ）＋開発者監査スイート |
 | `nobelengine_agents_portal.html` | 開発・拡張ポータル（Chart.js でタスク雪崩・ロードマップを可視化） |
 | `AGENTS.md` | 開発・拡張ガイドライン（設計書＋ロードマップ＋ガードレール） |
 | `Skill.md` | **学生をゲーム完成まで導く手順書**（日中対訳）。エージェントがこの順で支援 |
