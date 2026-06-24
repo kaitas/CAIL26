@@ -24,6 +24,14 @@
             user-select: none;
         }
         #stage { height: 100dvh; min-height: 100%; }
+
+        /* 単体起動時（iframe外）は16:9を基準に、ポートレート画面を中央寄せ＋周囲は黒枠 */
+        body.standalone { background: #000; display: flex; align-items: center; justify-content: center; }
+        body.standalone #stage {
+            height: 100dvh; width: auto; aspect-ratio: 9 / 19.5;
+            max-width: 100vw; margin: auto; overflow: hidden;
+            box-shadow: 0 0 60px rgba(0,0,0,.7);
+        }
         .fade { animation: fade .35s ease; }
         @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
         .portrait-pop { animation: pop .35s cubic-bezier(.2,.9,.3,1.2); }
@@ -198,6 +206,10 @@
             if (!document.getElementById('story-screen').classList.contains('hidden')) { advance(); e.preventDefault(); }
         }
     });
+
+    // iframe の外で直接開かれた（単体起動）場合は 16:9 黒枠レイアウトにする
+    try { if (window.top === window.self) document.body.classList.add('standalone'); }
+    catch (e) { /* クロスオリジンは iframe 内とみなす */ }
 
     setLang('ja');
 </script>

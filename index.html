@@ -111,11 +111,13 @@
            スマホプレビュー枠（左パネル）: 「完成したゲームが手機でどう見えるか」
            ===================================================================== */
         .phone-shell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        #phone-sizer { transition: width .18s ease, height .18s ease; }
         .phone-frame {
-            width: 100%; max-width: 384px;
+            width: fit-content;
             background: #0b1220; border-radius: 46px; padding: 13px;
             box-shadow: 0 22px 55px rgba(0,0,0,.38), inset 0 0 0 2px rgba(255,255,255,.06);
             position: relative;
+            transform-origin: top left;
         }
         .phone-frame::after { /* サイドボタン風の装飾 */
             content: ""; position: absolute; right: -3px; top: 130px;
@@ -127,8 +129,9 @@
         }
         .phone-screen {
             border-radius: 33px !important;
-            height: min(72vh, 700px);
             overflow: hidden;
+            display: block;
+            /* width/height は applyDevice() が機種の論理解像度をインラインで設定 */
         }
         .phone-caption {
             font-size: 11px; color: var(--text-theme-muted); display: flex; align-items: center; gap: 6px;
@@ -208,28 +211,29 @@
     <main class="flex-1 flex overflow-hidden">
         
         <!-- =================== LEFT PANEL: PLAYABLE GAME ENGINE =================== -->
-        <section class="w-1/2 border-r border-stone-300/40 flex flex-col p-4 relative overflow-y-auto dynamic-panel">
-            <div class="flex items-center justify-between mb-3 shrink-0">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold tracking-widest uppercase font-serif" id="game-scope-label">Simulation Room</span>
-                    <span class="text-xs text-stone-500" id="game-scope-sub">| ノベル＆シミュレーション画面</span>
+        <section class="w-1/3 min-w-[300px] border-r border-stone-300/40 flex flex-col p-4 relative overflow-y-auto dynamic-panel">
+            <div class="shrink-0 mb-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-black tracking-widest uppercase font-serif" id="game-scope-label">Doujinshi Workspace</span>
+                    <span id="game-phase-badge" class="px-2 py-0.5 text-[10px] rounded font-bold uppercase tracking-wider bg-black/5 border border-sky-600/40">BEGINNING</span>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="resetGame()" class="px-2.5 py-1 text-xs bg-black/5 hover:bg-black/10 border border-stone-400/50 text-stone-700 rounded flex items-center gap-1 transition">
+                <!-- 端末プルダウン：プレビュー枠を実機の論理解像度・アスペクト比に切替 -->
+                <div class="flex items-center gap-1.5 mt-2">
+                    <i data-lucide="smartphone" class="w-4 h-4 text-stone-400 shrink-0"></i>
+                    <select id="device-selector" onchange="applyDevice(this.value)" class="flex-1 min-w-0 bg-black/5 text-[11px] border border-stone-400/40 rounded px-2 py-1.5 outline-none cursor-pointer hover:border-sky-500 transition font-bold font-mono"></select>
+                    <button onclick="resetGame()" title="最初からやり直す / 重新开始" class="px-2 py-1.5 text-[11px] bg-black/5 hover:bg-black/10 border border-stone-400/50 text-stone-700 rounded shrink-0 transition">
                         <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        <span data-i18n="reset-btn">最初からやり直す</span>
                     </button>
-                    <span id="game-phase-badge" class="px-2.5 py-1 text-xs rounded font-bold uppercase tracking-wider bg-black/5 border border-sky-600/40">
-                        サークル結成 (BEGINNING)
-                    </span>
                 </div>
+                <div id="device-dims" class="text-[10px] text-stone-400 font-mono mt-1 text-right">—</div>
             </div>
 
-            <!-- スマホプレビュー枠：実際のゲーム player.html を iframe 表示（＝最終デプロイ版のプレビュー） -->
-            <div class="phone-shell flex-1 justify-center py-1">
-              <div class="phone-frame">
+            <!-- スマホプレビュー枠：実際のゲーム player.html を iframe 表示。機種に応じて論理解像度をJSで適用 -->
+            <div class="phone-shell flex-1 justify-start py-1">
+              <div id="phone-sizer" class="mx-auto">
+              <div class="phone-frame" id="phone-frame">
                 <div class="phone-notch"></div>
-                <iframe id="game-preview" src="player.html" title="ゲームプレビュー" class="phone-screen w-full border-0 bg-white block"></iframe>
+                <iframe id="game-preview" src="player.html" title="ゲームプレビュー" class="phone-screen border-0 bg-white block"></iframe>
                 <!-- 学習シミュレーション本体（node等）。読み込み時に右パネル #sim-host へ移設される -->
                 <div id="game-screen" class="flex flex-col dynamic-wood-panel relative rounded-lg overflow-hidden" style="display:none; height:600px;">
                 
@@ -572,6 +576,7 @@
                 </div>
                 </div><!-- /#game-screen（＝スマホ画面） -->
               </div><!-- /.phone-frame -->
+              </div><!-- /#phone-sizer -->
               <div class="phone-caption">
                 <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
                 <span data-i18n="phone-caption">実ゲーム(player.html)のスマホプレビュー</span>
@@ -598,10 +603,22 @@
                     <span class="text-[9px] text-stone-500 shrink-0">不安 (Anxiety)</span>
                 </div>
             </div>
+
+            <!-- 自動テスト（Self-Test）UI：プレビュー・画像・整合性を非破壊で点検 -->
+            <div class="mt-2 bg-white/70 border border-stone-200 rounded p-2.5 shrink-0 shadow-sm">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[11px] font-bold flex items-center gap-1 font-serif">
+                        <i data-lucide="flask-conical" class="w-3.5 h-3.5 dynamic-text-accent"></i> 自動テスト / Self-Test
+                    </span>
+                    <button onclick="runSelfTest()" class="px-2.5 py-1 text-[11px] font-bold rounded text-white shadow transition" style="background: var(--primary-theme);">▶ 実行 / 运行</button>
+                </div>
+                <div id="selftest-summary" class="text-[11px] text-stone-500 mb-1">未実行 / 未运行</div>
+                <ul id="selftest-results" class="text-[10px] space-y-0.5 max-h-32 overflow-y-auto pr-1"></ul>
+            </div>
         </section>
 
         <!-- =================== RIGHT PANEL: DEVELOPER SUITE =================== -->
-        <section class="w-1/2 flex flex-col overflow-y-auto border-l border-stone-300/40 dynamic-panel transition-colors duration-300">
+        <section class="w-2/3 flex-1 flex flex-col overflow-y-auto border-l border-stone-300/40 dynamic-panel transition-colors duration-300">
 
             <!-- 学習シミュレーション（元はスマホ内にあった node UI を右へ移設）。#game-screen がここへ入る -->
             <div class="shrink-0 p-3 pb-0">
@@ -1324,9 +1341,146 @@
             }
         }
 
+        // ============================================================
+        //  iPhone / iPad 機種プルダウン（プレビュー枠を実機の論理解像度に）
+        //  値は各機種の「ポイント(論理解像度)」。player.html はこの幅を実機幅として描画する。
+        // ============================================================
+        const DEVICE_GROUPS = [
+            { group: 'iPhone', items: [
+                { id:'ip-414x896', label:'iPhone XR / 11 / XS Max / 11 Pro Max', w:414, h:896 },
+                { id:'ip-390x844', label:'iPhone 12 / 13 / 14', w:390, h:844 },
+                { id:'ip-393x852', label:'iPhone 14 Pro / 15 / 16', w:393, h:852 },
+                { id:'ip-402x874', label:'iPhone 16 Pro / 17 / 17 Pro', w:402, h:874 },
+                { id:'ip-420x912', label:'iPhone Air', w:420, h:912 },
+                { id:'ip-428x926', label:'iPhone 12–14 Pro Max / 14 Plus', w:428, h:926 },
+                { id:'ip-430x932', label:'iPhone 15 / 16 Plus・Pro Max', w:430, h:932 },
+                { id:'ip-440x956', label:'iPhone 16 / 17 Pro Max', w:440, h:956 },
+            ]},
+            { group: 'iPad', items: [
+                { id:'ipad-768x1024', label:'iPad / mini(〜5) / Air / Pro 9.7', w:768, h:1024 },
+                { id:'ipad-744x1133', label:'iPad mini (6)', w:744, h:1133 },
+                { id:'ipad-810x1080', label:'iPad (7–9)', w:810, h:1080 },
+                { id:'ipad-820x1180', label:'iPad Air (4) / iPad (10)', w:820, h:1180 },
+                { id:'ipad-834x1112', label:'iPad Pro 10.5 / Air (3)', w:834, h:1112 },
+                { id:'ipad-834x1194', label:'iPad Pro 11', w:834, h:1194 },
+                { id:'ipad-1024x1366', label:'iPad Pro 12.9', w:1024, h:1366 },
+            ]},
+        ];
+        const DEVICE_MAP = {};
+        DEVICE_GROUPS.forEach(g => g.items.forEach(d => DEVICE_MAP[d.id] = d));
+        let currentDeviceId = 'ip-393x852'; // 既定: iPhone 16 相当
+
+        function buildDeviceOptions() {
+            const sel = document.getElementById('device-selector');
+            if (!sel) return;
+            sel.innerHTML = DEVICE_GROUPS.map(g =>
+                `<optgroup label="${g.group}">` +
+                g.items.map(d => `<option value="${d.id}"${d.id===currentDeviceId?' selected':''}>${d.label} — ${d.w}×${d.h}</option>`).join('') +
+                `</optgroup>`).join('');
+        }
+
+        function applyDevice(id) {
+            const d = DEVICE_MAP[id] || DEVICE_MAP[currentDeviceId];
+            if (!d) return;
+            currentDeviceId = d.id;
+            const iframe = document.getElementById('game-preview');
+            const frame  = document.getElementById('phone-frame');
+            const sizer  = document.getElementById('phone-sizer');
+            const shell  = document.querySelector('.phone-shell');
+            if (!iframe || !frame || !sizer || !shell) return;
+            iframe.style.width  = d.w + 'px';
+            iframe.style.height = d.h + 'px';
+            const PAD = 26; // .phone-frame の padding 13px * 2
+            const frameW = d.w + PAD, frameH = d.h + PAD;
+            const availW = Math.max(160, shell.clientWidth - 4);
+            const availH = Math.max(320, window.innerHeight * 0.72);
+            const k = Math.min(1, availW / frameW, availH / frameH);
+            frame.style.transform = `scale(${k})`;
+            sizer.style.width  = (frameW * k) + 'px';
+            sizer.style.height = (frameH * k) + 'px';
+            const dims = document.getElementById('device-dims');
+            if (dims) dims.innerText = `${d.w}×${d.h} pt · ${Math.round(k*100)}%`;
+        }
+        window.addEventListener('resize', () => applyDevice(currentDeviceId));
+
+        // ============================================================
+        //  自動テスト（Self-Test）— 非破壊で主要要素・画像・整合性を点検
+        // ============================================================
+        function loadImageTest(src) {
+            return new Promise((resolve) => {
+                const im = new Image();
+                im.onload = () => resolve(im.naturalWidth > 0);
+                im.onerror = () => resolve(false);
+                im.src = src;
+            });
+        }
+        async function runSelfTest() {
+            const sumEl = document.getElementById('selftest-summary');
+            const listEl = document.getElementById('selftest-results');
+            if (sumEl) sumEl.innerText = '実行中… / 运行中…';
+            if (listEl) listEl.innerHTML = '';
+            const results = [];
+            const add = (name, ok, note) => results.push({ name, ok: !!ok, note: note || '' });
+
+            // 1. プレビュー iframe (player.html) 到達
+            try {
+                const f = document.getElementById('game-preview');
+                const doc = f && f.contentDocument;
+                add('プレビュー player.html 読込', !!(doc && doc.getElementById('stage')), doc ? '' : '同一オリジンで実行してください');
+            } catch (e) { add('プレビュー player.html 読込', false, e.message); }
+
+            // 2. サンプル画像の読み込み（6枚）
+            const imgs = ['title-key-visual','cover-magical-bakery','char-komugi','char-aoi','char-yuzu','ending-comic-fair'];
+            const imgOks = await Promise.all(imgs.map(n => loadImageTest('assets/samples/' + n + '.jpg')));
+            add('サンプル画像 6枚 読込', imgOks.every(Boolean), `${imgOks.filter(Boolean).length}/6`);
+
+            // 3. ナラティブ証拠が各5段（0→4）で定義されている
+            try {
+                const ev = gameDatabase.doujin.evidence;
+                const okEv = Object.values(ev).every(e => e.details.length === 5 && e.detailsZh.length === 5);
+                add('証拠ノード 各5段(0→4)', okEv);
+            } catch (e) { add('証拠ノード 各5段(0→4)', false, e.message); }
+
+            // 4. i18n 日中のキー数一致
+            try {
+                const ja = Object.keys(localizations.ja).length, zh = Object.keys(localizations.zh).length;
+                add('i18n 日中キー数一致', ja === zh, `ja:${ja} / zh:${zh}`);
+            } catch (e) { add('i18n 日中キー数一致', false, e.message); }
+
+            // 5. シナリオ非空・日中同数
+            try {
+                const s = gameDatabase.doujin.script, sz = gameDatabase.doujin.scriptZh;
+                add('シナリオ 非空・日中同数', s.length > 0 && s.length === sz.length, `${s.length}話`);
+            } catch (e) { add('シナリオ 非空・日中同数', false, e.message); }
+
+            // 6. 立ち絵マッピング 3名
+            try {
+                add('立ち絵マッピング(3名)', !!(PORTRAITS.komugi && PORTRAITS.aoi && PORTRAITS.yuzu));
+            } catch (e) { add('立ち絵マッピング(3名)', false, e.message); }
+
+            // 7. 機種プレビュー枠が適用済み
+            try {
+                const t = document.getElementById('phone-frame').style.transform;
+                add('機種プレビュー枠 適用', /scale\(/.test(t), currentDeviceId);
+            } catch (e) { add('機種プレビュー枠 適用', false, e.message); }
+
+            const pass = results.filter(r => r.ok).length;
+            if (sumEl) {
+                sumEl.innerHTML = `<b class="${pass===results.length?'text-emerald-600':'text-red-600'}">${pass}/${results.length} PASS</b>`;
+            }
+            if (listEl) {
+                listEl.innerHTML = results.map(r =>
+                    `<li class="flex items-start gap-1"><span>${r.ok?'✅':'❌'}</span><span>${r.name}${r.note?` <span class="text-stone-400">(${r.note})</span>`:''}</span></li>`).join('');
+            }
+            writeLog(`[SELF-TEST] ${pass}/${results.length} passed.`, pass===results.length ? 'success' : 'warning');
+            return results;
+        }
+
         window.onload = function() {
             lucide.createIcons();
             relocateSimToRight(); // 先に node を右へ移してから初期化
+            buildDeviceOptions();
+            applyDevice(currentDeviceId); // 既定機種でプレビュー枠を初期化
             initAmbientCanvas();
             applyPresetTheme('lightblue'); // デフォルトライトブルー適用
             loadProject(appState.activeProject);
